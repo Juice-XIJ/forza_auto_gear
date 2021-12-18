@@ -37,11 +37,7 @@ def presskey(key):
         records = []
         # prepare records
         if hasattr(forza5, 'records') and len(forza5.records) > 0:
-            records = forza5.records
-            ordinal = records[0]['car_ordinal']
-            with open(f'./forza_auto_gear/dump/{ordinal}', 'w') as dump:
-                for item in records:
-                    dump.write(f'{item}\n')
+            forza5.dump_config()
         else:
             default_ordinal = '444'
             with open (f'./forza_auto_gear/dump/{default_ordinal}', 'r') as dump:
@@ -51,7 +47,7 @@ def presskey(key):
 
         if len(records) > 0:
             logger.info('Analysis')
-            forza5.analyze(records)
+            forza5.analyze()
     elif t == forza5.auto_shift:
         if forza5.isRunning:
             logger.info('stopping auto gear')
@@ -62,16 +58,21 @@ def presskey(key):
             logger.info('starting auto gear')
             def starting():
                 forza5.isRunning = True
-                forza5.auto_gear()
+                forza5.run()
             threadPool.submit(starting)
 if __name__ == "__main__":
-
-    dump = [f for f in listdir(forza5.dump_folder) if isfile(join(forza5.dump_folder, f))]
-    with open (os.path.join(forza5.dump_folder, dump[0]), 'r') as dump:
-        for line in dump:
-            forza5.records.append(json.loads(line.replace('\n', '').replace('\'', '\"')))
-
+    # forza5.load_config(os.path.join(forza5.config_folder, '3250.json'))
     logger.info('Forza Auto Shift Started!!!')
     with Listener(on_press=presskey) as listener:
         listener.join()
     pass
+
+def convert_dump_to_config():
+    dump_folder = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'dump')
+    for dump in [f for f in listdir(dump_folder) if isfile(join(dump_folder, f))]:
+        with open (os.path.join(dump_folder, dump), 'r') as dump:
+            forza5.records = []
+            for line in dump:
+                forza5.records.append(json.loads(line.replace('\n', '').replace('\'', '\"')))
+            forza5.analyze()
+            forza5.dump_config()

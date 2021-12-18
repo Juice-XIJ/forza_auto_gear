@@ -23,19 +23,10 @@ class Forza:
         self.packet_format = packet_format
         self.isRunning = False
         self.threadPool = threadPool
-
-        # Constant        
-        self.dump_folder = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'dump')
-
-        # Car information
-        self.minGear = 1
-        self.maxGear = 5
         self.clutch = clutch
 
-        self.gear_ratios = {}
-        self.rpm_torque_map = {}
-        self.shift_point = {}
-        self.cuttoff = 4000
+        # Constant        
+        self.config_folder = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'config')
 
         # === Pre-defined operation ===
         self.stop = 'f11' # stop program
@@ -43,23 +34,19 @@ class Forza:
         self.collect_data = 'f10'
         self.analysis = 'f8'
         self.auto_shift = 'f7'
+
+        # === Car information ===
+        self.ordinal = ''
+        self.minGear = 1
+        self.maxGear = 5
+        
+        self.gear_ratios = {}
+        self.rpm_torque_map = {}
+        self.shift_point = {}
+        self.records = []
         
         self.last_upshift = time.time()
         self.last_downshift = time.time()
-
-    def dump_config(self):
-        config = {
-            # === dump operation setting ===
-            'stop': self.stop,
-            'close': self.close,
-            'collect_data': self.collect_data,
-            'analysis': self.analysis,
-            'auto_shift': self.auto_shift,
-
-            # === dump data and result ===
-            'minGear': self.minGear,
-            'maxGear': self
-        }
 
     def test_gear(self):
         logger.info('gear test started')
@@ -104,51 +91,52 @@ class Forza:
                 #     gear_helper.upShiftHandle(fdp.gear)
                 #     upShiftTime = time.time()
 
+        self.ordinal = self.records[0]['car_ordinal']
         logger.info('gear test finished')
         return self.records
 
     def analyze(self):
         self.shift_point = gear_helper.calculateOptimalShiftPoint(self.records, self)
 
-        rpm = np.array([item['rpm'] for item in self.records])  
-        time = np.array([item['time'] for item in self.records])
-        power = np.array([item['power'] for item in self.records])
-        torque = np.array([item['torque'] for item in self.records])
-        time0 = self.records[0]['time']
-        time = np.where(time > 0, time - time0, 0)
+        # rpm = np.array([item['rpm'] for item in self.records])  
+        # time = np.array([item['time'] for item in self.records])
+        # power = np.array([item['power'] for item in self.records])
+        # torque = np.array([item['torque'] for item in self.records])
+        # time0 = self.records[0]['time']
+        # time = np.where(time > 0, time - time0, 0)
 
-        fig, ax = plt.subplots(2, 2)
+        # fig, ax = plt.subplots(2, 2)
 
-        # # gear vs ratio at 0, 0
-        self.plot_gear_ratio(ax, 0, 0)
+        # # # gear vs ratio at 0, 0
+        # self.plot_gear_ratio(ax, 0, 0)
 
-        # torque vs rpm at 0, 1
-        self.plot_engine_profile(ax, 0, 1)
+        # # torque vs rpm at 0, 1
+        # self.plot_engine_profile(ax, 0, 1)
         
-        # power vs rpm at 1, 0
-        ax[1, 0].plot(time, power, label='power', color='b')
-        ax[1, 0].set_xlabel('time')
-        ax[1, 0].set_ylabel('power (W)', color='b')
-        ax[1, 0].tick_params('y', color='b')
-        ax0 = ax[1, 0].twinx()
-        ax0.plot(time, rpm, label='rpm', color='r')
-        ax0.set_ylabel('rpm (r/m)', color='r')
-        ax0.tick_params('y', colors='r')
+        # # power vs rpm at 1, 0
+        # ax[1, 0].plot(time, power, label='power', color='b')
+        # ax[1, 0].set_xlabel('time')
+        # ax[1, 0].set_ylabel('power (W)', color='b')
+        # ax[1, 0].tick_params('y', color='b')
+        # ax0 = ax[1, 0].twinx()
+        # ax0.plot(time, rpm, label='rpm', color='r')
+        # ax0.set_ylabel('rpm (r/m)', color='r')
+        # ax0.tick_params('y', colors='r')
 
-        # torque vs power at 1, 1
-        ax[1, 1].plot(time, torque, label='torque', color='b')
-        ax[1, 1].set_xlabel('time')
-        ax[1, 1].set_ylabel('torque (N/m)', color='b')
-        ax[1, 1].tick_params('y', color='b')
-        ax0 = ax[1, 1].twinx()
-        ax0.plot(time, power, label='power', color='r')
-        ax0.set_ylabel('power (W)', color='r')
-        ax0.tick_params('y', colors='r')
+        # # torque vs power at 1, 1
+        # ax[1, 1].plot(time, torque, label='torque', color='b')
+        # ax[1, 1].set_xlabel('time')
+        # ax[1, 1].set_ylabel('torque (N/m)', color='b')
+        # ax[1, 1].tick_params('y', color='b')
+        # ax0 = ax[1, 1].twinx()
+        # ax0.plot(time, power, label='power', color='r')
+        # ax0.set_ylabel('power (W)', color='r')
+        # ax0.tick_params('y', colors='r')
 
-        fig.tight_layout()
-        plt.show()
+        # fig.tight_layout()
+        # plt.show()
 
-    def auto_gear(self):        
+    def run(self):        
         logger.info('auto gear started')
         iteration = -1
         while self.isRunning:
@@ -157,18 +145,22 @@ class Forza:
                 if fdp.car_ordinal <= 0:
                     continue
                 
-                # dump name pattern: xxx_xxx_{car_ordinal}_xxx
-                dump = [f for f in listdir(self.dump_folder) if (isfile(join(self.dump_folder, f)) and fdp.car_ordinal in f.split('_'))]
-                if len(dump) <= 0:
-                    logger.warning(f'dump ({fdp.car_ordinal}) is not found at folder {self.dump_folder}. Please run gear test ({self.collect_data}) and/or analysis ({self.analysis}) first!!')
+                # config name pattern: xxx_xxx_{car_ordinal}_xxx
+                config = [f for f in listdir(self.config_folder) if (isfile(join(self.config_folder, f)) and str(fdp.car_ordinal) in os.path.splitext(f)[0].split('_'))]
+                if len(config) <= 0:
+                    logger.warning(f'config ({fdp.car_ordinal}) is not found at folder {self.config_folder}. Please run gear test ({self.collect_data}) and/or analysis ({self.analysis}) first!!')
                     return
-                elif len(dump) > 1:
-                    logger.warning(f'multiple dumps ({fdp.car_ordinal}) are found at folder {self.dump_folder}: {dump}. The car ordinal should be unique')
+                elif len(config) > 1:
+                    logger.warning(f'multiple configs ({fdp.car_ordinal}) are found at folder {self.config_folder}: {config}. The car ordinal should be unique')
                     return
-                else:                    
-                    with open (os.path.join(self.dump_folder, dump[0]), 'r') as dump:
-                        for line in dump:
-                            self.records.append(json.loads(line.replace('\n', '').replace('\'', '\"')))
+                else:
+                    logger.info(f'loading config {config}')
+                    self.load_config(os.path.join(self.config_folder, config[0]))
+                    if len(self.shift_point) <= 0:
+                        logger.warning(f'Config is invalid. Please run gear test ({self.collect_data}) and/or analysis ({self.analysis}) to create a new one!!')
+                        return
+                    logger.info(f'loaded config {config}')
+                    continue
 
             if self.maxGear >= fdp.gear >= self.minGear:
                 iteration = iteration + 1
@@ -245,3 +237,69 @@ class Forza:
             ax[row, col].tick_params('y')
 
         ax[row, col].legend(loc=8)
+
+    def dump_config(self):
+        self.ordinal = str(self.records[0]['car_ordinal'])
+        config = {
+            # === dump operation setting ===
+            'stop': self.stop,
+            'close': self.close,
+            'collect_data': self.collect_data,
+            'analysis': self.analysis,
+            'auto_shift': self.auto_shift,
+
+            # === dump data and result ===
+            'ordinal': self.ordinal,
+            'minGear': self.minGear,
+            'maxGear': self.maxGear,
+            'gear_ratios': {key: {'ratio': value['ratio'], 'c': value['c']} for key, value in self.gear_ratios.items()},
+            'rpm_torque_map': {key: {'min_rpm_index': value['min_rpm_index'], 'max_rpm_index': value['max_rpm_index']} for key, value in self.rpm_torque_map.items()},
+            'shift_point': {key: {'rpmo': value['rpmo'], 'speed': value['speed']} for key, value in self.shift_point.items()},
+            'records': self.records,
+        }
+
+        with open(os.path.join(self.config_folder, f'{self.ordinal}.json'), "w") as f:
+            def convert(n):
+                if isinstance(n, np.int32) or isinstance(n, np.int64):
+                    return n.item()
+            json.dump(config, f, default=convert, indent=4)
+
+    def load_config(self, path):
+        with open(os.path.join(self.config_folder, path), "r") as f:
+            config = json.loads(f.read())
+        
+        if 'stop' in config:
+            self.stop = config['stop']
+        
+        if 'close' in config:
+            self.close = config['close']
+
+        if 'collect_data' in config:
+            self.collect_data = config['collect_data']
+
+        if 'analysis' in config:
+            self.analysis = config['analysis']
+
+        if 'auto_shift' in config:
+            self.auto_shift = config['auto_shift']
+
+        if 'ordinal' in config:
+            self.ordinal = config['ordinal']
+
+        if 'minGear' in config:
+            self.minGear = config['minGear']
+
+        if 'maxGear' in config:
+            self.maxGear = config['maxGear']
+
+        if 'gear_ratios' in config:
+            self.gear_ratios = {int(key): {'ratio': value['ratio'], 'c': value['c']} for key, value in config['gear_ratios'].items()}
+
+        if 'rpm_torque_map' in config:
+            self.rpm_torque_map = {int(key): {'min_rpm_index': value['min_rpm_index'], 'max_rpm_index': value['max_rpm_index']} for key, value in config['rpm_torque_map'].items()}
+
+        if 'shift_point' in config:
+            self.shift_point = {int(key): {'rpmo': value['rpmo'], 'speed': value['speed']} for key, value in config['shift_point'].items()}
+
+        if 'records' in config:
+            self.records = config['records']
