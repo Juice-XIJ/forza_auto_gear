@@ -25,8 +25,7 @@ def plot_gear_ratio(forza, ax: axes.Axes = None, row: int = None, col: int = Non
     ax[row, col].plot(time, ratio, label='speed/rpm', color='b')
 
     color = iter(cm.rainbow(np.linspace(0, 1, len(forza.gear_ratios))))
-    for _, item in forza.gear_ratios.items():
-        g = item['records'][0]['gear']
+    for g, item in forza.gear_ratios.items():
         ax[row, col].hlines(item['ratio'], time[0], time[-1], label=f'gear {g} ratio', color=next(color), linestyles='dashed')
     
     ax[row, col].set_xlabel('time')
@@ -43,9 +42,9 @@ def plot_gear_ratio(forza, ax: axes.Axes = None, row: int = None, col: int = Non
 
 def plot_torque_rpm(forza, ax: axes.Axes = None, row: int = None, col: int = None):
     color = iter(cm.rainbow(np.linspace(0, 1, len(forza.gear_ratios))))
-    for _, item in forza.rpm_torque_map.items():
-        g = item['records'][0]['gear']
-        data = np.array([[i['rpm'], i['torque']] for i in item['records'][item['min_rpm_index']:item['max_rpm_index']]])
+    for g, item in forza.rpm_torque_map.items():
+        raw_records = forza.get_gear_raw_records(g)
+        data = np.array([[i['rpm'], i['torque']] for i in raw_records[item['min_rpm_index']:item['max_rpm_index']]])
         data = np.sort(data, 0)
         c = next(color)
         
@@ -63,9 +62,9 @@ def plot_torque_rpm(forza, ax: axes.Axes = None, row: int = None, col: int = Non
 
 def plot_torque_speed(forza, ax: axes.Axes = None, row: int = None, col: int = None):
     color = iter(cm.rainbow(np.linspace(0, 1, len(forza.gear_ratios))))
-    for _, item in forza.rpm_torque_map.items():
-        g = item['records'][0]['gear']
-        data = np.array([[i['speed'], i['torque']] for i in item['records'][item['min_rpm_index']:item['max_rpm_index']]])
+    for g, item in forza.rpm_torque_map.items():
+        raw_records = forza.get_gear_raw_records(g)
+        data = np.array([[i['speed'], i['torque']] for i in raw_records[item['min_rpm_index']:item['max_rpm_index']]])
         data = np.sort(data, 0)
         c = next(color)
         
@@ -83,9 +82,9 @@ def plot_torque_speed(forza, ax: axes.Axes = None, row: int = None, col: int = N
 
 def plot_rpm_speed(forza, ax: axes.Axes = None, row: int = None, col: int = None):
     color = iter(cm.rainbow(np.linspace(0, 1, len(forza.gear_ratios))))
-    for _, item in forza.rpm_torque_map.items():
-        g = item['records'][0]['gear']
-        data = np.array([[i['speed'], i['rpm']] for i in item['records'][item['min_rpm_index']:item['max_rpm_index']]])
+    for g, item in forza.rpm_torque_map.items():
+        raw_records = forza.get_gear_raw_records(g)
+        data = np.array([[i['speed'], i['rpm']] for i in raw_records[item['min_rpm_index']:item['max_rpm_index']]])
         data = np.sort(data, 0)
         c = next(color)
         
@@ -118,9 +117,9 @@ def dump_config(forza):
             'ordinal': forza.ordinal,
             'minGear': forza.minGear,
             'maxGear': forza.maxGear,
-            'gear_ratios': {key: {'ratio': value['ratio'], 'c': value['c']} for key, value in forza.gear_ratios.items()},
-            'rpm_torque_map': {key: {'min_rpm_index': value['min_rpm_index'], 'max_rpm_index': value['max_rpm_index']} for key, value in forza.rpm_torque_map.items()},
-            'shift_point': {key: {'rpmo': value['rpmo'], 'speed': value['speed']} for key, value in forza.shift_point.items()},
+            'gear_ratios': forza.gear_ratios,
+            'rpm_torque_map': forza.rpm_torque_map,
+            'shift_point': forza.shift_point,
             'records': forza.records,
         }
 
@@ -163,13 +162,13 @@ def load_config(forza, path):
             forza.maxGear = config['maxGear']
 
         if 'gear_ratios' in config:
-            forza.gear_ratios = {int(key): {'ratio': value['ratio'], 'c': value['c']} for key, value in config['gear_ratios'].items()}
+            forza.gear_ratios = config['gear_ratios']
 
         if 'rpm_torque_map' in config:
-            forza.rpm_torque_map = {int(key): {'min_rpm_index': value['min_rpm_index'], 'max_rpm_index': value['max_rpm_index']} for key, value in config['rpm_torque_map'].items()}
+            forza.rpm_torque_map = config['rpm_torque_map']
 
         if 'shift_point' in config:
-            forza.shift_point = {int(key): {'rpmo': value['rpmo'], 'speed': value['speed']} for key, value in config['shift_point'].items()}
+            forza.shift_point = config['shift_point']
 
         if 'records' in config:
             forza.records = config['records']

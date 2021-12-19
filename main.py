@@ -59,7 +59,6 @@ def presskey(key):
             threadPool.submit(starting)
 
 if __name__ == "__main__":
-    # forza5.load_config(os.path.join(forza5.config_folder, '3250.json'))
     logger.info('Forza Auto Shift Started!!!')
     with Listener(on_press=presskey) as listener:
         listener.join()

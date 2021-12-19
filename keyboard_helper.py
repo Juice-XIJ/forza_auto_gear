@@ -38,13 +38,11 @@ def pressdown_str(keystr):
     key = keystr if keystr not in keybind else keybind[keystr]
     MapKey = ctypes.windll.user32.MapVirtualKeyA
     win32api.keybd_event(key, MapKey(key, 0), 0, 0)
-    # time.sleep(0.001)
 
 def pressup_str(keystr):
     key = keystr if keystr not in keybind else keybind[keystr]
     MapKey = ctypes.windll.user32.MapVirtualKeyA
     win32api.keybd_event(key, MapKey(key, 0), win32con.KEYEVENTF_KEYUP, 0)
-    # time.sleep(0.001)
 
 def press_str(keystr):
     key = keystr if keystr not in keybind else keybind[keystr]

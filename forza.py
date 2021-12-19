@@ -1,4 +1,3 @@
-import json
 import os
 import socket
 import time
@@ -7,16 +6,17 @@ from os import listdir
 from os.path import isfile, join
 
 import matplotlib.pyplot as plt
-import numpy as np
 from fdp import ForzaDataPacket
 
 import gear_helper
 import helper
+from car_info import CarInfo
 from logger import logger
 
 
-class Forza:
+class Forza(CarInfo):
     def __init__(self, port, threadPool: ThreadPoolExecutor, packet_format='fh4', clutch = False):
+        super().__init__()
         self.server_socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
         self.server_socket.bind(('127.0.0.1', port))
         logger.info('listening on port {}'.format(port))
@@ -57,7 +57,7 @@ class Forza:
                 fdp = helper.nextFdp(self.server_socket, self.packet_format)
                 if fdp.speed > 0.1:
                     info = {
-                        'gear': fdp.gear,
+                        'gear': str(fdp.gear),
                         'rpm': fdp.current_engine_rpm,
                         'time': time.time(),
                         'speed': fdp.speed * 3.6,
@@ -83,7 +83,7 @@ class Forza:
     def analyze(self, performance_profile=True):
         try:
             logger.debug(f'{self.analyze.__name__} started')
-            self.shift_point = gear_helper.calculateOptimalShiftPoint(self.records, self)
+            self.shift_point = gear_helper.calculateOptimalShiftPoint(self)
 
             if performance_profile:
                 fig, ax = plt.subplots(2, 2)
@@ -144,7 +144,7 @@ class Forza:
                 # 1. self.shift_point is empty
                 # or
                 # 2. fdp.car_ordinal is different from self.ordinal => means car switched
-                if len(self.shift_point) <= 0 or self.ordinal != fdp.car_ordinal:
+                if len(self.shift_point) <= 0 or self.ordinal != str(fdp.car_ordinal):
                     if self.__try_auto_load_config(fdp):
                         continue
                     else:
@@ -175,4 +175,4 @@ class Forza:
             logger.exception(e)
         finally:
             self.isRunning = False
-            logger.debug(f'{self.run.__name__} finished')
+            logger.debug(f'{self.run.__name__} finished')            

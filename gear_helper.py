@@ -16,8 +16,8 @@ downshift = 'q' # down shift
 acceleration = 'w' # acceleration
 
 # === Delay Setings ===
-delayClutchtoShift = 0.001 # delay between pressing clutch and shift
-delayShifttoClutch = 0.001 # delay between pressing shift and releasing clutch
+delayClutchtoShift = 0 # delay between pressing clutch and shift
+delayShifttoClutch = 0.033 # delay between pressing shift and releasing clutch
 downShiftCoolDown = 0.4 # cooldown after down shift
 upShiftCoolDown = 0.2 # cooldown after up shift
 blipThrottleDuration = 0.1 # blip the throttle duration. Should be short since keyboard is 100% acceleration output
@@ -46,18 +46,10 @@ def set_car_properties(records: dict, forza):
 
 def get_rpm_torque_map(records: dict, forza):
     res = {}
-    rpm_to_torque = {}
-
-    # init
-    for g in range(forza.minGear, forza.maxGear + 1):
-        rpm_to_torque[g] = []
-
-    for record in records:
-        rpm_to_torque[record['gear']].append(record)
     
     # find rpm range
     for g in range(forza.minGear, forza.maxGear + 1):
-        torques = np.array([item['torque'] for item in rpm_to_torque[g]])
+        torques = np.array([item['torque'] for item in records[g]])
 
         # first min_rpm_index that torque > 0 and max_rpm_index point that torque < 0 and after min_rpm_index
         min_rpm_index = np.argmax(torques > 0)
@@ -65,12 +57,11 @@ def get_rpm_torque_map(records: dict, forza):
 
         res[g] = {
             'min_rpm_index': min_rpm_index,
-            'max_rpm_index': max_rpm_index,
-            'records': rpm_to_torque[g]
+            'max_rpm_index': max_rpm_index
         }
 
-        lower_rpm = res[g]['records'][min_rpm_index]['rpm'] 
-        upper_rpm = res[g]['records'][max_rpm_index]['rpm']
+        lower_rpm = records[g][min_rpm_index]['rpm'] 
+        upper_rpm = records[g][max_rpm_index]['rpm']
         logger.info(f'For Gear {g}, the min_rpm_index: {min_rpm_index}, max_rpm_index: {max_rpm_index}, rpm range: {lower_rpm} ~ {upper_rpm}')
         
         # import matplotlib.pyplot as plt
@@ -81,20 +72,12 @@ def get_rpm_torque_map(records: dict, forza):
         # plt.show()
     return res
 
-def get_gear_ratio_map(records: dict, forza):
+def get_gear_ratio_map(records: dict):
     res = {}
-    gear_to_ratio = {}
-    # init
-    for g in range(forza.minGear, forza.maxGear + 1):
-        gear_to_ratio[g] = []
-    
-    for items in records:
-        gear_to_ratio[items['gear']].append(items)
 
-    for gear, items in gear_to_ratio.items():
+    for gear, items in records.items():
         var = 99999
         ratio = -1
-        c = -1
         for index in range(0, len(items) - 20, 5):
             t = items[index:index + 20]
             ratios = [item['speed/rpm'] for item in t]
@@ -102,53 +85,57 @@ def get_gear_ratio_map(records: dict, forza):
             if tmp_var < var:
                 ratio = np.average(ratios)
                 var = tmp_var
-                p = len(t) // 2
-                c = t[p]['speed'] / t[p]['rpm'] / ratio
         
-        logger.info(f'Gear ratio at Gear {gear} is {ratio}, c is {c}')
+        logger.info(f'Gear ratio at Gear {gear} is {ratio}')
         res[gear] = {
             'ratio': ratio,
-            'c': c,
-            'records': items
         }
 
     return res
 
-def get_torque(r, rpm_to_torque):
-    rpms = np.array([item['rpm'] for item in rpm_to_torque['records']])
+def get_torque(r, record_by_gear):
+    rpms = np.array([item['rpm'] for item in record_by_gear])
 
     # find the closest rpm vs r in rpms list
     r_index = np.abs(rpms - r).argmin()
-    return rpm_to_torque['records'][r_index]['torque']
+    return record_by_gear[r_index]['torque']
 
 def get_gear_ratio(g, gear_ratios: dict):
     return gear_ratios[g]['ratio']
 
-def calculateOptimalShiftPoint(records: dict, forza):
+def calculateOptimalShiftPoint(forza):
     # result, (gear, record)
     res = {}
 
+    # records by gears
+    records_by_gears = {}    
+    for items in forza.records:
+        if items['gear'] not in records_by_gears.keys():
+            records_by_gears[items['gear']] = []
+        records_by_gears[items['gear']].append(items)
+
     # set car properties
-    set_car_properties(records, forza)
+    set_car_properties(forza.records, forza)
 
     # get gear ratio
-    forza.gear_ratios = get_gear_ratio_map(records, forza)
+    forza.gear_ratios = get_gear_ratio_map(records_by_gears)
 
     # search optimal rpm from gear G to gear G + 1
-    forza.rpm_torque_map = get_rpm_torque_map(records, forza)
+    forza.rpm_torque_map = get_rpm_torque_map(records_by_gears, forza)
     for gear, tuple in forza.gear_ratios.items():
         if gear == forza.maxGear:
             break
-
-        rpm_to_torque = forza.rpm_torque_map[gear]
-        rpm_to_torque1 = forza.rpm_torque_map[gear + 1]
+        
+        rpm_torque = forza.rpm_torque_map[gear]
+        rpm_to_torque = records_by_gears[gear]
+        rpm_to_torque1 = records_by_gears[gear + 1]
 
         min_dt_torque = 99999
         rpmo = -1
         ratio = tuple['ratio']
         # search optimal rpm. Starting from max rpm.
-        max_rpm = int(rpm_to_torque['records'][rpm_to_torque['max_rpm_index']]['rpm'])
-        min_rpm = int(rpm_to_torque['records'][rpm_to_torque['min_rpm_index']]['rpm'])
+        max_rpm = int(rpm_to_torque[rpm_torque['max_rpm_index']]['rpm'])
+        min_rpm = int(rpm_to_torque[rpm_torque['min_rpm_index']]['rpm'])
         for r in range(max_rpm, min_rpm, -50):
             # delta(r, G) = getTorque(r) * gR(G) - getTorque(r * gR(G + 1) / gR(G)) * gR(G + 1)
             ratio1 = get_gear_ratio(gear + 1, forza.gear_ratios)
@@ -157,7 +144,7 @@ def calculateOptimalShiftPoint(records: dict, forza):
                 rpmo = r
                 min_dt_torque = delta 
 
-        logger.info(f'Optimal shift point from {gear} to {gear + 1} is at rpm ({min_rpm} ~ {max_rpm}) = {rpmo} r/m, speed = {rpmo * ratio} km/h, delta torque = {min_dt_torque}')
+        logger.info(f'Optimal shift point from {gear} to {gear + 1} is at rpm ({min_rpm} ~ {max_rpm}) = {rpmo} r/m, speed = {rpmo * ratio} km/h, delta output torque = {min_dt_torque}')
         res[gear] = {
             'rpmo': rpmo,
             'speed': rpmo * ratio
@@ -167,7 +154,7 @@ def calculateOptimalShiftPoint(records: dict, forza):
 
 def blipThrottle():
     keyboard_helper.pressdown_str(acceleration)
-    time.sleep(0.1)
+    time.sleep(blipThrottleDuration)
     keyboard_helper.pressup_str(acceleration)
 
 def upShiftHandle(gear, forza):
@@ -181,11 +168,12 @@ def upShiftHandle(gear, forza):
                 logger.debug(f'[UpShift] clutch {clutch} down on {gear}')
             forza.threadPool.submit(press)
 
+        time.sleep(delayClutchtoShift)
         # up shift and delay
         keyboard_helper.press_str(upshift)
         logger.debug(f'[UpShift] upshift {upshift} down and up on {gear}')
         
-        time.sleep(0.033)
+        time.sleep(delayClutchtoShift)
         if forza.clutch:
             # release clutch
             keyboard_helper.pressup_str(clutch)
@@ -207,11 +195,12 @@ def downShiftHandle(gear, forza):
             # blip throttle
             forza.threadPool.submit(blipThrottle)
 
+        time.sleep(delayClutchtoShift)
         # down shift and delay
         keyboard_helper.press_str(downshift)
         logger.debug(f'[DownShift] downshift {upshift} down and up on {gear}')
 
-        time.sleep(0.033)
+        time.sleep(delayShifttoClutch)
         if forza.clutch:
             # release clutch
             keyboard_helper.pressup_str(clutch)
