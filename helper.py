@@ -33,7 +33,7 @@ def plot_gear_ratio(forza, ax: axes.Axes = None, row: int = None, col: int = Non
     ax[row, col].set_ylabel('ratio (km/h/rpm)', color='b')
     ax[row, col].tick_params('y', color='b')
     ax[row, col].legend()
-    ax[row, col].title('Gear Ratio (speed/rpm)')
+    ax[row, col].set_title('Gear Ratio (speed/rpm)')
 
     ax0 = ax[row, col].twinx()
     ax0.plot(time, gear, label='gear', color='r')
@@ -58,7 +58,8 @@ def plot_torque_rpm(forza, ax: axes.Axes = None, row: int = None, col: int = Non
         ax[row, col].tick_params('y')
 
     ax[row, col].legend(loc=8)
-    ax[row, col].title('Torque vs rpm')
+    ax[row, col].set_title('Torque vs rpm')
+    ax[row, col].grid(visible=True, color='grey', linestyle='--')
 
 def plot_torque_speed(forza, ax: axes.Axes = None, row: int = None, col: int = None):
     color = iter(cm.rainbow(np.linspace(0, 1, len(forza.gear_ratios))))
@@ -77,7 +78,8 @@ def plot_torque_speed(forza, ax: axes.Axes = None, row: int = None, col: int = N
         ax[row, col].tick_params('y')
 
     ax[row, col].legend(loc='upper right')
-    ax[row, col].title('Torque vs Speed')
+    ax[row, col].set_title('Torque vs Speed')
+    ax[row, col].grid(visible=True, color='grey', linestyle='--')
 
 def plot_rpm_speed(forza, ax: axes.Axes = None, row: int = None, col: int = None):
     color = iter(cm.rainbow(np.linspace(0, 1, len(forza.gear_ratios))))
@@ -96,7 +98,8 @@ def plot_rpm_speed(forza, ax: axes.Axes = None, row: int = None, col: int = None
         ax[row, col].tick_params('y')
 
     ax[row, col].legend(loc='upper right')
-    ax[row, col].title('rpm vs Speed')
+    ax[row, col].set_title('rpm vs Speed')
+    ax[row, col].grid(visible=True, color='grey', linestyle='--')
 
 
 def dump_config(forza):
