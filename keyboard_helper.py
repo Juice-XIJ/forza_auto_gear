@@ -1,10 +1,9 @@
-from concurrent.futures import ThreadPoolExecutor
-
 import ctypes
-import threading
 import time
+
 import win32api
 import win32con
+
 from logger import logger
 
 keycooldown = 0.0001
@@ -64,27 +63,3 @@ def get_key_name(key):
         except:
             return ""
     return t
-
-def get_thread_id(thread):
-    for id, t in threading._active.items():
-        if t is thread:
-            return id
-
-def raise_exception(thread_id):
-    import ctypes
-    res = ctypes.pythonapi.PyThreadState_SetAsyncExc(thread_id,
-                                                     ctypes.py_object(SystemExit))
-    if res > 1:
-        ctypes.pythonapi.PyThreadState_SetAsyncExc(thread_id, 0)
-        logger.info('Exception raise failure')
-
-def stop(threadPool):
-    for thread in threadPool._threads:
-        id = get_thread_id(thread)
-        raise_exception(id)
-
-    threadPool.shutdown(wait=False)
-
-def restart(threadPool):
-    stop(threadPool)
-    return ThreadPoolExecutor(max_workers=1, thread_name_prefix="exec")

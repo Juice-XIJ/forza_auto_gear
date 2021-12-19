@@ -2,3 +2,4 @@ dump/**
 config/**
 __pycache__/**
 log/**
+.vscode/**

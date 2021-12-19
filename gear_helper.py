@@ -1,9 +1,11 @@
-from scipy.ndimage.measurements import label
-import keyboard_helper
 import time
-from logger import logger
-import numpy as np
 from concurrent.futures import ThreadPoolExecutor
+
+import numpy as np
+from scipy.ndimage.measurements import label
+
+import keyboard_helper
+from logger import logger
 
 figure_threadPool = ThreadPoolExecutor(max_workers=3, thread_name_prefix="exec")
 

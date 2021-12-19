@@ -1,23 +1,28 @@
-import sys
 import os
+import sys
 
 sys.path.append(r'./forza_motorsport')
 
-from concurrent.futures import ThreadPoolExecutor
-import forza
-from logger import logger
-from pynput.keyboard import Listener
 import json
-
-import keyboard_helper
-
+from concurrent.futures import ThreadPoolExecutor
 from os import listdir
 from os.path import isfile, join
+
+from pynput.keyboard import Listener
+
+import forza
+import helper
+import keyboard_helper
+from logger import logger
+
 port = 12350
 packet_format = 'fh4'
 
 threadPool = ThreadPoolExecutor(max_workers=8, thread_name_prefix="exec")
 forza5 = forza.Forza(port, threadPool, packet_format, clutch=True)
+
+car_ordinal = '444'
+dir_path = os.path.dirname(os.path.abspath(__file__))
 
 def presskey(key):
     t = keyboard_helper.get_key_name(key)
@@ -34,20 +39,12 @@ def presskey(key):
                 forza5.test_gear()
             threadPool.submit(starting)
     elif t == forza5.analysis:
-        records = []
-        # prepare records
-        if hasattr(forza5, 'records') and len(forza5.records) > 0:
-            forza5.dump_config()
-        else:
-            default_ordinal = '444'
-            with open (f'./forza_auto_gear/dump/{default_ordinal}', 'r') as dump:
-                for line in dump:
-                    records.append(json.loads(line.replace('\n', '').replace('\'', '\"')))
-                forza5.records = records
-
-        if len(records) > 0:
-            logger.info('Analysis')
-            forza5.analyze()
+        if len(forza5.records) <= 0:
+            logger.info(f'load config {car_ordinal}.json for analysis')
+            helper.load_config(forza5, os.path.join(dir_path, 'config', f'{car_ordinal}.json'))
+        logger.info('Analysis')
+        forza5.analyze()
+        helper.dump_config(forza5)
     elif t == forza5.auto_shift:
         if forza5.isRunning:
             logger.info('stopping auto gear')
@@ -60,6 +57,7 @@ def presskey(key):
                 forza5.isRunning = True
                 forza5.run()
             threadPool.submit(starting)
+
 if __name__ == "__main__":
     # forza5.load_config(os.path.join(forza5.config_folder, '3250.json'))
     logger.info('Forza Auto Shift Started!!!')

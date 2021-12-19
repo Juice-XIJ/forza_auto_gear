@@ -1,7 +1,9 @@
 import logging
+import os
 import sys
 
-file_handler = logging.FileHandler(r'./forza_auto_gear/log/forza5.log', mode='w')
+log_folder = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'log')
+file_handler = logging.FileHandler(os.path.join(log_folder, 'forza5.log'), mode='w')
 console_handler = logging.StreamHandler(sys.stdout)
 console_handler.setLevel(logging.INFO)
 
