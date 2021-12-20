@@ -47,13 +47,6 @@ def get_rpm_torque_map(records: dict, forza):
         lower_rpm = records[g][min_rpm_index]['rpm'] 
         upper_rpm = records[g][max_rpm_index]['rpm']
         logger.info(f'For Gear {g}, the min_rpm_index: {min_rpm_index}, max_rpm_index: {max_rpm_index}, rpm range: {lower_rpm} ~ {upper_rpm}')
-        
-        # import matplotlib.pyplot as plt
-        # rpms = np.array([item['rpm'] for item in rpm_to_torque[g]])
-        # plt.plot(range(len(torques)), rpms, color='b')
-        # plt.plot(range(min_rpm_index, max_rpm_index), rpms[min_rpm_index: max_rpm_index], color='r')
-        # plt.title(f'Gear {g}')
-        # plt.show()
     return res
 
 def get_gear_ratio_map(records: dict):

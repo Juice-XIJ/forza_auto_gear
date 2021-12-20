@@ -5,7 +5,7 @@ packet_format = 'fh4'
 enable_clutch = True
 
 # default car config
-default_car_ordinal = 'your ordinal' 
+default_car_ordinal = 'example' 
 
 # === Keyboard ===
 clutch = 'i' # clutch
