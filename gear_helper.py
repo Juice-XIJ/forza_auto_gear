@@ -173,7 +173,7 @@ def upShiftHandle(gear, forza):
         keyboard_helper.press_str(upshift)
         logger.debug(f'[UpShift] upshift {upshift} down and up on {gear}')
         
-        time.sleep(delayClutchtoShift)
+        time.sleep(delayShifttoClutch)
         if forza.clutch:
             # release clutch
             keyboard_helper.pressup_str(clutch)

@@ -120,7 +120,7 @@ class Forza(CarInfo):
                 return False
             else:
                 logger.info(f'loading config {config}')
-                self.load_config(os.path.join(self.config_folder, config[0]))
+                helper.load_config(self, os.path.join(self.config_folder, config[0]))
                 if len(self.shift_point) <= 0:
                     logger.warning(f'Config is invalid. Please run gear test ({self.collect_data}) and/or analysis ({self.analysis}) to create a new one!!')
                     return False
@@ -150,15 +150,15 @@ class Forza(CarInfo):
                     else:
                         return
 
-                if self.maxGear >= fdp.gear >= self.minGear:
+                gear = fdp.gear
+                if self.maxGear >= gear >= self.minGear:
                     iteration = iteration + 1
                     slip = (fdp.tire_slip_ratio_RL + fdp.tire_slip_ratio_RR) / 2
-                    gear = fdp.gear
                     speed = fdp.speed * 3.6
                     rpm = fdp.current_engine_rpm
                     accel = fdp.accel
                     fired = False
-                    if fdp.gear < self.maxGear:
+                    if gear < self.maxGear:
                         target_rpm = self.shift_point[gear]['rpmo'] * 0.99999
                         target_up_speed = int(self.shift_point[gear]['speed'] * 0.985)
                         if rpm > target_rpm and slip < 1 and accel and speed > target_up_speed:
@@ -166,7 +166,7 @@ class Forza(CarInfo):
                             gear_helper.upShiftHandle(gear, self)
                             fired = True
 
-                    if not fired and gear > 1:
+                    if not fired and gear > self.minGear:
                         target_down_speed = self.shift_point[gear - 1]['speed']
                         if speed + 20 < target_down_speed and slip < 1:
                             logger.debug(f'[{iteration}] down shift triggerred. speed < target down speed ({speed} > {target_down_speed}), fired {fired}')

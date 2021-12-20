@@ -162,13 +162,13 @@ def load_config(forza, path):
             forza.maxGear = config['maxGear']
 
         if 'gear_ratios' in config:
-            forza.gear_ratios = config['gear_ratios']
+            forza.gear_ratios = {int(key): value for key, value in config['gear_ratios'].items()}
 
         if 'rpm_torque_map' in config:
-            forza.rpm_torque_map = config['rpm_torque_map']
+            forza.rpm_torque_map = {int(key): value for key, value in config['rpm_torque_map'].items()} 
 
         if 'shift_point' in config:
-            forza.shift_point = config['shift_point']
+            forza.shift_point = {int(key): value for key, value in config['shift_point'].items()}  
 
         if 'records' in config:
             forza.records = config['records']
