@@ -1,3 +1,5 @@
+[简体中文](./README.zhcn.md)
+
 # forza_auto_gear
 forza_auto_gear is a tool for Forza Horizon 5. It will help us understand the best gear shift point using Manual or w/ Clutch in Forza Horizon 5. Built with python.
 
@@ -28,6 +30,7 @@ Then the result will be saved at `./config/{car ordinal}.json`
 2. Lots of variables could be modified in `constants.py`
 3. If you already have the config file, then run F7 directly. It will load the config automatically while driving. Or you could share configs to your friends. Don't forget to share your car tune as well :)
 4. You could modify the log level in `logger.py` for console and file handlers.
+5. Feel free to modify any logic to fit your style.
 
 ## Acknowledgments
 - [forza_motorsport](https://github.com/nettrom/forza_motorsport) for data reading protocol
