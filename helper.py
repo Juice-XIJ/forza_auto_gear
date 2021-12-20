@@ -24,8 +24,11 @@ def nextFdp(server_socket: socket, format: str):
     Returns:
         [ForzaDataPacket]: fdp
     """
-    message, _ = server_socket.recvfrom(1024)
-    return ForzaDataPacket(message, packet_format=format)
+    try:
+        message, _ = server_socket.recvfrom(1024)
+        return ForzaDataPacket(message, packet_format=format)
+    except TimeoutError as e:
+        return None
 
 def plot_gear_ratio(forza: CarInfo, ax: axes.Axes = None, row: int = None, col: int = None):
     """plot gear ratio vs gear
