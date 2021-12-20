@@ -3,28 +3,22 @@ import sys
 
 sys.path.append(r'./forza_motorsport')
 
-import json
 from concurrent.futures import ThreadPoolExecutor
-from os import listdir
-from os.path import isfile, join
 
 from pynput.keyboard import Listener
 
+import constants
 import forza
 import helper
 import keyboard_helper
 from logger import logger
 
-port = 12350
-packet_format = 'fh4'
-
 threadPool = ThreadPoolExecutor(max_workers=8, thread_name_prefix="exec")
-forza5 = forza.Forza(port, threadPool, packet_format, clutch=True)
+forza5 = forza.Forza(threadPool, constants.packet_format, clutch=constants.enable_clutch)
 
-car_ordinal = '444'
 dir_path = os.path.dirname(os.path.abspath(__file__))
 
-def presskey(key):
+def on_press(key):
     t = keyboard_helper.get_key_name(key)
     if t == forza5.collect_data:
         if forza5.isRunning:
@@ -40,8 +34,8 @@ def presskey(key):
             threadPool.submit(starting)
     elif t == forza5.analysis:
         if len(forza5.records) <= 0:
-            logger.info(f'load config {car_ordinal}.json for analysis')
-            helper.load_config(forza5, os.path.join(dir_path, 'config', f'{car_ordinal}.json'))
+            logger.info(f'load config {constants.default_car_ordinal}.json for analysis')
+            helper.load_config(forza5, os.path.join(dir_path, 'config', f'{constants.default_car_ordinal}.json'))
         logger.info('Analysis')
         forza5.analyze()
         helper.dump_config(forza5)
@@ -59,17 +53,17 @@ def presskey(key):
             threadPool.submit(starting)
 
 if __name__ == "__main__":
-    logger.info('Forza Auto Shift Started!!!')
-    with Listener(on_press=presskey) as listener:
-        listener.join()
-    pass
+    logger.info('Forza Auto Gear Shifting Started!!!')
 
-def convert_dump_to_config():
-    dump_folder = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'dump')
-    for dump in [f for f in listdir(dump_folder) if isfile(join(dump_folder, f))]:
-        with open (os.path.join(dump_folder, dump), 'r') as dump:
-            forza5.records = []
-            for line in dump:
-                forza5.records.append(json.loads(line.replace('\n', '').replace('\'', '\"')))
-            forza5.analyze()
-            forza5.dump_config()
+    # create folders if not existed
+    log_path = os.path.join(dir_path, 'log')
+    if not os.path.exists(log_path):
+        os.makedirs(log_path)
+        logger.debug(f'log folder {log_path} created')
+    if not os.path.exists(forza5.config_folder):
+        os.makedirs(forza5.config_folder)
+        logger.debug(f'config folder {forza5.config_folder} created')
+
+    # listen to keyboard press event
+    with Listener(on_press=on_press) as listener:
+        listener.join()

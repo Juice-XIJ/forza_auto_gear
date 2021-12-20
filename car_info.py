@@ -1,8 +1,8 @@
 class CarInfo():
     def __init__(self):
         # === Pre-defined operation ===
-        self.stop = 'f11' # stop program
-        self.close = 'delete' # close program
+        self.stop = 'f11' # stop program, not implemented yet
+        self.close = 'delete' # close program, not implemented yet
         self.collect_data = 'f10'
         self.analysis = 'f8'
         self.auto_shift = 'f7'

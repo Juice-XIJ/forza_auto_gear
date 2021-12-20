@@ -13,12 +13,14 @@ import helper
 from car_info import CarInfo
 from logger import logger
 
+ip = '127.0.0.1'
+port = 12350
 
 class Forza(CarInfo):
-    def __init__(self, port, threadPool: ThreadPoolExecutor, packet_format='fh4', clutch = False):
+    def __init__(self, threadPool: ThreadPoolExecutor, packet_format='fh4', clutch = False):
         super().__init__()
         self.server_socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-        self.server_socket.bind(('127.0.0.1', port))
+        self.server_socket.bind((ip, port))
         logger.info('listening on port {}'.format(port))
 
         self.packet_format = packet_format

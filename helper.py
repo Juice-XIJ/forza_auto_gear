@@ -10,7 +10,6 @@ from matplotlib.pyplot import cm
 
 from logger import logger
 
-
 def nextFdp(server_socket, format):
     message, _ = server_socket.recvfrom(1024)
     return ForzaDataPacket(message, packet_format=format)
