@@ -14,7 +14,7 @@ git submodule update --recursive
 0. Setup the data out:
 ![data_output_settings](./img/output_settings.png)
 1. Run main.py
-2. F10 starts the data collection:    
+2. F10 starts the data collection:
     - Find a drag strip location.
     - Starting from Gear 1, accelerate until fuel cut-off (rpm is vibrating), then up shifting gear. Repeat until reaching the maximum gear.
     - Press REWIND to pause, then press F10 to stop data collect.

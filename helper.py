@@ -26,7 +26,7 @@ def plot_gear_ratio(forza, ax: axes.Axes = None, row: int = None, col: int = Non
     color = iter(cm.rainbow(np.linspace(0, 1, len(forza.gear_ratios))))
     for g, item in forza.gear_ratios.items():
         ax[row, col].hlines(item['ratio'], time[0], time[-1], label=f'gear {g} ratio', color=next(color), linestyles='dashed')
-    
+
     ax[row, col].set_xlabel('time')
     ax[row, col].set_ylabel('ratio (km/h/rpm)', color='b')
     ax[row, col].tick_params('y', color='b')
@@ -46,7 +46,7 @@ def plot_torque_rpm(forza, ax: axes.Axes = None, row: int = None, col: int = Non
         data = np.array([[i['rpm'], i['torque']] for i in raw_records[item['min_rpm_index']:item['max_rpm_index']]])
         data = np.sort(data, 0)
         c = next(color)
-        
+
         rpms = np.array([item[0] for item in data])
         torque = np.array([item[1] for item in data])
 
@@ -66,7 +66,7 @@ def plot_torque_speed(forza, ax: axes.Axes = None, row: int = None, col: int = N
         data = np.array([[i['speed'], i['torque']] for i in raw_records[item['min_rpm_index']:item['max_rpm_index']]])
         data = np.sort(data, 0)
         c = next(color)
-        
+
         speeds = np.array([item[0] for item in data])
         torque = np.array([item[1] for item in data])
 
@@ -86,7 +86,7 @@ def plot_rpm_speed(forza, ax: axes.Axes = None, row: int = None, col: int = None
         data = np.array([[i['speed'], i['rpm']] for i in raw_records[item['min_rpm_index']:item['max_rpm_index']]])
         data = np.sort(data, 0)
         c = next(color)
-        
+
         speeds = np.array([item[0] for item in data])
         rpm = np.array([item[1] for item in data])
 
@@ -135,21 +135,6 @@ def load_config(forza, path):
         logger.debug(f'{load_config.__name__} started')
         with open(os.path.join(forza.config_folder, path), "r") as f:
             config = json.loads(f.read())
-        
-        if 'stop' in config:
-            forza.stop = config['stop']
-        
-        if 'close' in config:
-            forza.close = config['close']
-
-        if 'collect_data' in config:
-            forza.collect_data = config['collect_data']
-
-        if 'analysis' in config:
-            forza.analysis = config['analysis']
-
-        if 'auto_shift' in config:
-            forza.auto_shift = config['auto_shift']
 
         if 'ordinal' in config:
             forza.ordinal = str(config['ordinal'])
@@ -164,10 +149,10 @@ def load_config(forza, path):
             forza.gear_ratios = {int(key): value for key, value in config['gear_ratios'].items()}
 
         if 'rpm_torque_map' in config:
-            forza.rpm_torque_map = {int(key): value for key, value in config['rpm_torque_map'].items()} 
+            forza.rpm_torque_map = {int(key): value for key, value in config['rpm_torque_map'].items()}
 
         if 'shift_point' in config:
-            forza.shift_point = {int(key): value for key, value in config['shift_point'].items()}  
+            forza.shift_point = {int(key): value for key, value in config['shift_point'].items()}
 
         if 'records' in config:
             forza.records = config['records']

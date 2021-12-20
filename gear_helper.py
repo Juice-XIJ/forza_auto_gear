@@ -16,7 +16,7 @@ from logger import logger
 # Let's said getTorque(r) return the Torque while rpm is r.
 # We have: delta = getTorque(r) * gR1 - getTorque(r * gR2 / gR1) * gR2
 # The goal is to make sure the delta is closed to 0. Then the r is the optimal shift point, said orpm.
-# We cannot get the gR1 or gR2 directly but we know we could get C * gR from speed / rpm, said S/R, while at Gear G. 
+# We cannot get the gR1 or gR2 directly but we know we could get C * gR from speed / rpm, said S/R, while at Gear G.
 # Then we could calculate gRn at Gn by (Sn / Rn), said gR(G) is the ration at Gear G
 # Meanwhile the C is a constant and could be combined with gR. We have:
 # delta(r, G) = getTorque(r) * gR(G) - getTorque(r * gR(G + 1) / gR(G)) * gR(G + 1)
@@ -30,7 +30,7 @@ def set_car_properties(records: dict, forza):
 
 def get_rpm_torque_map(records: dict, forza):
     res = {}
-    
+
     # find rpm range
     for g in range(forza.minGear, forza.maxGear + 1):
         torques = np.array([item['torque'] for item in records[g]])
@@ -44,7 +44,7 @@ def get_rpm_torque_map(records: dict, forza):
             'max_rpm_index': max_rpm_index
         }
 
-        lower_rpm = records[g][min_rpm_index]['rpm'] 
+        lower_rpm = records[g][min_rpm_index]['rpm']
         upper_rpm = records[g][max_rpm_index]['rpm']
         logger.info(f'For Gear {g}, the min_rpm_index: {min_rpm_index}, max_rpm_index: {max_rpm_index}, rpm range: {lower_rpm} ~ {upper_rpm}')
     return res
@@ -62,7 +62,7 @@ def get_gear_ratio_map(records: dict):
             if tmp_var < var:
                 ratio = np.average(ratios)
                 var = tmp_var
-        
+
         logger.info(f'Gear ratio at Gear {gear} is {ratio}')
         res[gear] = {
             'ratio': ratio,
@@ -85,7 +85,7 @@ def calculateOptimalShiftPoint(forza):
     res = {}
 
     # records by gears
-    records_by_gears = {}    
+    records_by_gears = {}
     for items in forza.records:
         if items['gear'] not in records_by_gears.keys():
             records_by_gears[items['gear']] = []
@@ -102,7 +102,7 @@ def calculateOptimalShiftPoint(forza):
     for gear, tuple in forza.gear_ratios.items():
         if gear == forza.maxGear:
             break
-        
+
         rpm_torque = forza.rpm_torque_map[gear]
         rpm_to_torque = records_by_gears[gear]
         rpm_to_torque1 = records_by_gears[gear + 1]
@@ -119,14 +119,14 @@ def calculateOptimalShiftPoint(forza):
             delta = get_torque(r, rpm_to_torque) * ratio - ratio1 * get_torque(r * ratio1 / ratio, rpm_to_torque1)
             if abs(delta) < min_dt_torque:
                 rpmo = r
-                min_dt_torque = delta 
+                min_dt_torque = delta
 
         logger.info(f'Optimal shift point from {gear} to {gear + 1} is at rpm ({min_rpm} ~ {max_rpm}) = {rpmo} r/m, speed = {rpmo * ratio} km/h, delta output torque = {min_dt_torque}')
         res[gear] = {
             'rpmo': rpmo,
             'speed': rpmo * ratio
         }
-    
+
     return res
 
 def blipThrottle():
@@ -149,7 +149,7 @@ def upShiftHandle(gear, forza):
         # up shift and delay
         keyboard_helper.press_str(constants.upshift)
         logger.debug(f'[UpShift] upshift {constants.upshift} down and up on {gear}')
-        
+
         time.sleep(constants.delayShifttoClutch)
         if forza.clutch:
             # release clutch

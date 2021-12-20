@@ -5,7 +5,14 @@ packet_format = 'fh4'
 enable_clutch = True
 
 # default car config
-default_car_ordinal = 'example' 
+default_car_ordinal = 'example'
+
+# === short-cut ===
+stop = 'pause' # stop program
+close = 'end' # close program
+collect_data = 'f10'
+analysis = 'f8'
+auto_shift = 'f7'
 
 # === Keyboard ===
 clutch = 'i' # clutch

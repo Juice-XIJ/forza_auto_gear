@@ -31,13 +31,6 @@ class Forza(CarInfo):
         # Constant        
         self.config_folder = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'config')
 
-        # === Pre-defined operation ===
-        self.stop = 'f11' # stop program
-        self.close = 'delete' # close program
-        self.collect_data = 'f10'
-        self.analysis = 'f8'
-        self.auto_shift = 'f7'
-
         # === Car information ===
         self.ordinal = ''
         self.minGear = 1
