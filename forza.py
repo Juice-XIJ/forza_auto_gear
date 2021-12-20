@@ -8,43 +8,50 @@ from os.path import isfile, join
 import matplotlib.pyplot as plt
 from fdp import ForzaDataPacket
 
+import constants
 import gear_helper
 import helper
 from car_info import CarInfo
 from logger import logger
 
-ip = '127.0.0.1'
-port = 12350
-
 class Forza(CarInfo):
     def __init__(self, threadPool: ThreadPoolExecutor, packet_format='fh4', clutch = False):
+        """initialization
+
+        Args:
+            threadPool (ThreadPoolExecutor): threadPool
+            packet_format (str, optional): packet_format. Defaults to 'fh4'.
+            clutch (bool, optional): clutch. Defaults to False.
+        """
         super().__init__()
         self.server_socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-        self.server_socket.bind((ip, port))
-        logger.info('listening on port {}'.format(port))
+        self.server_socket.bind((constants.ip, constants.port))
+        logger.info('listening on port {}'.format(constants.port))
 
         self.packet_format = packet_format
         self.isRunning = False
         self.threadPool = threadPool
         self.clutch = clutch
 
-        # Constant        
-        self.config_folder = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'config')
+        # constant
+        self.config_folder = os.path.join(constants.root_path, 'config')
 
-        # === Car information ===
-        self.ordinal = ''
-        self.minGear = 1
-        self.maxGear = 5
-        
+        # create folders if not existed
+        if not os.path.exists(self.config_folder):
+            os.makedirs(self.config_folder)
+
+        # === car data ===
         self.gear_ratios = {}
         self.rpm_torque_map = {}
         self.shift_point = {}
         self.records = []
-        
+
         self.last_upshift = time.time()
         self.last_downshift = time.time()
 
     def test_gear(self):
+        """collect gear information
+        """
         try:
             logger.debug(f'{self.test_gear.__name__} started')
             self.records = []
@@ -68,17 +75,21 @@ class Forza(CarInfo):
 
             if len(self.records) > 0:
                 self.ordinal = self.records[0]['car_ordinal']
-            return self.records
         except BaseException as e:
             logger.exception(e)
         finally:
-            self.isRunning = False        
+            self.isRunning = False
             logger.debug(f'{self.test_gear.__name__} finished')
 
-    def analyze(self, performance_profile=True):
+    def analyze(self, performance_profile: bool=True):
+        """analyze data
+
+        Args:
+            performance_profile (bool, optional): plot figures or not. Defaults to True.
+        """
         try:
             logger.debug(f'{self.analyze.__name__} started')
-            self.shift_point = gear_helper.calculateOptimalShiftPoint(self)
+            self.shift_point = gear_helper.calculate_optimal_shift_point(self)
 
             if performance_profile:
                 fig, ax = plt.subplots(2, 2)
@@ -88,7 +99,7 @@ class Forza(CarInfo):
 
                 # torque vs rpm at 0, 1
                 helper.plot_torque_rpm(self, ax, 0, 1)
-                
+
                 # torque vs speed at 1, 0
                 helper.plot_torque_speed(self, ax, 1, 0)
 
@@ -103,6 +114,14 @@ class Forza(CarInfo):
             logger.debug(f'{self.analyze.__name__} ended')
 
     def __try_auto_load_config(self, fdp: ForzaDataPacket):
+        """auto load config while driving
+
+        Args:
+            fdp (ForzaDataPacket): fdp
+
+        Returns:
+            [bool]: success or failure
+        """
         try:
             logger.debug(f'{self.__try_auto_load_config.__name__} started')
             # config name pattern: xxx_xxx_{car_ordinal}_xxx
@@ -125,7 +144,9 @@ class Forza(CarInfo):
             logger.debug(f'{self.__try_auto_load_config.__name__} ended')
 
     def run(self):
-        try:     
+        """run the auto shifting
+        """
+        try:
             logger.debug(f'{self.run.__name__} started')
             iteration = -1
             while self.isRunning:
@@ -158,16 +179,16 @@ class Forza(CarInfo):
                         target_up_speed = int(self.shift_point[gear]['speed'] * 0.985)
                         if rpm > target_rpm and slip < 1 and accel and speed > target_up_speed:
                             logger.debug(f'[{iteration}] up shift triggerred. rpm > target rmp({rpm} > {target_rpm}), speed > target up speed ({speed} > {target_up_speed}), slip {slip}, accel {accel}')
-                            gear_helper.upShiftHandle(gear, self)
+                            gear_helper.up_shift_handle(gear, self)
                             fired = True
 
                     if not fired and gear > self.minGear:
                         target_down_speed = self.shift_point[gear - 1]['speed']
                         if speed + 20 < target_down_speed and slip < 1:
                             logger.debug(f'[{iteration}] down shift triggerred. speed < target down speed ({speed} > {target_down_speed}), fired {fired}')
-                            gear_helper.downShiftHandle(gear, self)
+                            gear_helper.down_shift_handle(gear, self)
         except BaseException as e:
             logger.exception(e)
         finally:
             self.isRunning = False
-            logger.debug(f'{self.run.__name__} finished')            
+            logger.debug(f'{self.run.__name__} finished')

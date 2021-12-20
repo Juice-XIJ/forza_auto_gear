@@ -1,5 +1,7 @@
 import ctypes
+import enum
 import time
+from pynput.keyboard import Key
 
 import win32api
 import win32con
@@ -153,21 +155,44 @@ keybind = {
     '`':0xC0
 }
 
-def pressdown_str(keystr):
+def pressdown_str(keystr: str):
+    """press down key
+
+    Args:
+        keystr (str): key
+    """
     MapKey = ctypes.windll.user32.MapVirtualKeyA
     win32api.keybd_event(keybind[keystr], MapKey(keybind[keystr], 0), 0, 0)
 
-def pressup_str(keystr):
+def release_str(keystr: str):
+    """release key
+
+    Args:
+        keystr (str): key
+    """
     MapKey = ctypes.windll.user32.MapVirtualKeyA
     win32api.keybd_event(keybind[keystr], MapKey(keybind[keystr], 0), win32con.KEYEVENTF_KEYUP, 0)
 
-def press_str(keystr):
+def press_str(keystr: str):
+    """press and then release key
+
+    Args:
+        keystr (str): key
+    """
     MapKey = ctypes.windll.user32.MapVirtualKeyA
     win32api.keybd_event(keybind[keystr], MapKey(keybind[keystr], 0), 0, 0)
     time.sleep(0.05)
     win32api.keybd_event(keybind[keystr], MapKey(keybind[keystr], 0), win32con.KEYEVENTF_KEYUP, 0)
 
 def get_key_name(key):
+    """get key name
+
+    Args:
+        key: key
+
+    Returns:
+        [str]: key name
+    """
     t = None
     try:
         t = key.char
