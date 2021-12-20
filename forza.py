@@ -14,6 +14,7 @@ import helper
 from car_info import CarInfo
 from logger import logger
 
+
 class Forza(CarInfo):
     def __init__(self, threadPool: ThreadPoolExecutor, packet_format='fh4', clutch = False):
         """initialization
@@ -25,6 +26,7 @@ class Forza(CarInfo):
         """
         super().__init__()
         self.server_socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+        self.server_socket.settimeout(1)
         self.server_socket.bind((constants.ip, constants.port))
         logger.info('listening on port {}'.format(constants.port))
 
@@ -57,9 +59,12 @@ class Forza(CarInfo):
             self.records = []
             while self.isRunning:
                 fdp = helper.nextFdp(self.server_socket, self.packet_format)
+                if fdp is None:
+                    continue
+
                 if fdp.speed > 0.1:
                     info = {
-                        'gear': str(fdp.gear),
+                        'gear': fdp.gear,
                         'rpm': fdp.current_engine_rpm,
                         'time': time.time(),
                         'speed': fdp.speed * 3.6,
@@ -151,6 +156,8 @@ class Forza(CarInfo):
             iteration = -1
             while self.isRunning:
                 fdp = helper.nextFdp(self.server_socket, self.packet_format)
+                if fdp is None:
+                    continue
 
                 # fdp is not car information
                 if fdp.car_ordinal <= 0:

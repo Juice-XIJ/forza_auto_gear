@@ -58,6 +58,7 @@ def on_press(key):
         forza5.isRunning = False
         logger.info('stopped')
     elif pressed == constants.close:
+        forza5.isRunning = False
         threadPool.shutdown(wait=False)
         logger.info('bye~')
         exit()
@@ -71,5 +72,6 @@ if __name__ == "__main__":
         with Listener(on_press=on_press) as listener:
             listener.join()
     finally:
+        forza5.isRunning = False
         threadPool.shutdown(wait=False)
         logger.info('Forza Auto Gear Shifting Ended!!!')
