@@ -1,3 +1,12 @@
+import os
+
+# repo path
+root_path = os.path.dirname(os.path.abspath(__file__))
+
+# socket information
+ip = '127.0.0.1'
+port = 12350
+
 # data format
 packet_format = 'fh4'
 
@@ -5,7 +14,14 @@ packet_format = 'fh4'
 enable_clutch = True
 
 # default car config
-default_car_ordinal = 'example' 
+example_car_ordinal = 'example'
+
+# === short-cut ===
+stop = 'pause' # stop program
+close = 'end' # close program
+collect_data = 'f10'
+analysis = 'f8'
+auto_shift = 'f7'
 
 # === Keyboard ===
 clutch = 'i' # clutch
@@ -13,7 +29,7 @@ upshift = 'e' # up shift
 downshift = 'q' # down shift
 acceleration = 'w' # acceleration
 
-# === Delay Setings ===
+# === Delay Settings ===
 delayClutchtoShift = 0 # delay between pressing clutch and shift
 delayShifttoClutch = 0.033 # delay between pressing shift and releasing clutch
 downShiftCoolDown = 0.4 # cooldown after down shift
