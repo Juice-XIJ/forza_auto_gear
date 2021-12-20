@@ -132,7 +132,7 @@ class Forza(CarInfo):
             # config name pattern: xxx_xxx_{car_ordinal}_xxx
             config = [f for f in listdir(self.config_folder) if (isfile(join(self.config_folder, f)) and str(fdp.car_ordinal) in os.path.splitext(f)[0].split('_'))]
             if len(config) <= 0:
-                logger.warning(f'config ({fdp.car_ordinal}) is not found at folder {self.config_folder}. Please run gear test ({self.collect_data}) and/or analysis ({self.analysis}) first!!')
+                logger.warning(f'config ({fdp.car_ordinal}) is not found at folder {self.config_folder}. Please run gear test ({constants.collect_data}) and/or analysis ({constants.analysis}) first!!')
                 return False
             elif len(config) > 1:
                 logger.warning(f'multiple configs ({fdp.car_ordinal}) are found at folder {self.config_folder}: {config}. The car ordinal should be unique')
@@ -141,7 +141,7 @@ class Forza(CarInfo):
                 logger.info(f'loading config {config}')
                 helper.load_config(self, os.path.join(self.config_folder, config[0]))
                 if len(self.shift_point) <= 0:
-                    logger.warning(f'Config is invalid. Please run gear test ({self.collect_data}) and/or analysis ({self.analysis}) to create a new one!!')
+                    logger.warning(f'Config is invalid. Please run gear test ({constants.collect_data}) and/or analysis ({constants.analysis}) to create a new one!!')
                     return False
                 logger.info(f'loaded config {config}')
                 return True
@@ -182,8 +182,8 @@ class Forza(CarInfo):
                     accel = fdp.accel
                     fired = False
                     if gear < self.maxGear:
-                        target_rpm = self.shift_point[gear]['rpmo'] * 0.99999
-                        target_up_speed = int(self.shift_point[gear]['speed'] * 0.985)
+                        target_rpm = self.shift_point[gear]['rpmo'] * 0.98
+                        target_up_speed = int(self.shift_point[gear]['speed'] * 0.995)
                         if rpm > target_rpm and slip < 1 and accel and speed > target_up_speed:
                             logger.debug(f'[{iteration}] up shift triggerred. rpm > target rmp({rpm} > {target_rpm}), speed > target up speed ({speed} > {target_up_speed}), slip {slip}, accel {accel}')
                             gear_helper.up_shift_handle(gear, self)
