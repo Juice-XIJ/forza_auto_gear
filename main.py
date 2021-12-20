@@ -20,6 +20,8 @@ dir_path = os.path.dirname(os.path.abspath(__file__))
 
 def on_press(key):
     t = keyboard_helper.get_key_name(key)
+    if t == '`':
+        exit()
     if t == forza5.collect_data:
         if forza5.isRunning:
             logger.info('stopping gear test')

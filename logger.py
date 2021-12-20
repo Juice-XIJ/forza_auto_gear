@@ -9,7 +9,8 @@ console_handler.setLevel(logging.INFO)
 
 logging.basicConfig(
     level=logging.DEBUG,
-    format='%(asctime)s.%(msecs)03d | \t %(levelname)s:\t %(message)s',
+    # format='%(asctime)s.%(msecs)03d | \t %(levelname)s:\t %(message)s',
+    format='%(asctime)s - %(pathname)s[line:%(lineno)d] - %(funcName)s - %(levelname)s: %(message)s',
     datefmt='%Y-%m-%d %H:%M:%S',
     handlers=[
         file_handler,
