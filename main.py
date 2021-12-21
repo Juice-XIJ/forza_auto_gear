@@ -17,6 +17,10 @@ threadPool = ThreadPoolExecutor(max_workers=8, thread_name_prefix="exec")
 forza5 = forza.Forza(threadPool, constants.packet_format, clutch=constants.enable_clutch)
 
 def on_press(key):
+    t = keyboard_helper.get_key_name(key)
+    if t == '`':
+        exit()
+    if t == forza5.collect_data:
     """on press callback
 
     Args:

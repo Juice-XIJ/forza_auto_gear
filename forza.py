@@ -96,23 +96,23 @@ class Forza(CarInfo):
             logger.debug(f'{self.analyze.__name__} started')
             self.shift_point = gear_helper.calculate_optimal_shift_point(self)
 
-            if performance_profile:
-                fig, ax = plt.subplots(2, 2)
+            # if performance_profile:
+            #     fig, ax = plt.subplots(2, 2)
 
-                # # gear vs ratio at 0, 0
-                helper.plot_gear_ratio(self, ax, 0, 0)
+            #     # # gear vs ratio at 0, 0
+            #     helper.plot_gear_ratio(self, ax, 0, 0)
+            #     # torque vs rpm at 0, 1
+            #     helper.plot_torque_rpm(self, ax, 0, 1)
+                
+            #     # torque vs speed at 1, 0
+            #     helper.plot_torque_speed(self, ax, 1, 0)
 
-                # torque vs rpm at 0, 1
-                helper.plot_torque_rpm(self, ax, 0, 1)
 
-                # torque vs speed at 1, 0
-                helper.plot_torque_speed(self, ax, 1, 0)
+            #     # rpm vs speed at 1, 1
+            #     helper.plot_rpm_speed(self, ax, 1, 1)
 
-                # rpm vs speed at 1, 1
-                helper.plot_rpm_speed(self, ax, 1, 1)
-
-                fig.tight_layout()
-                plt.show()
+            #     fig.tight_layout()
+            #     plt.show()
         except BaseException as e:
             logger.exception(e)
         finally:
