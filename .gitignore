@@ -3,3 +3,4 @@ config/**
 __pycache__/**
 log/**
 .vscode/**
+backup/**
