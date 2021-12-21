@@ -3,6 +3,7 @@ import sys
 
 sys.path.append(r'./forza_motorsport')
 
+import warnings
 from concurrent.futures import ThreadPoolExecutor
 
 from pynput.keyboard import Listener
@@ -13,6 +14,8 @@ import helper
 import keyboard_helper
 from logger import logger
 
+# suppress matplotlib warning while running in threads
+warnings.filterwarnings("ignore", category=UserWarning)
 threadPool = ThreadPoolExecutor(max_workers=8, thread_name_prefix="exec")
 forza5 = forza.Forza(threadPool, constants.packet_format, clutch=constants.enable_clutch)
 

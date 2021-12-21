@@ -3,12 +3,24 @@
 # forza_auto_gear
 forza_auto_gear 是为极限竞速：地平线5开发的一款测试工具。它能帮助玩家更好地理解手动档和手离的最佳换挡时机。 此软件使用python编写。
 
+## 先上结果图
+A800，GTR93，飞机场直线加速
+- 自动挡 (00:27.665):
+![automatic](./img/automatic.png)
+- 手动挡 (00:27.166):
+![manual](./img/manual.png)
+- 手离结合 (00:26.441):
+![manual w/ clutch](./img/manual_and_clutch.png)
+- 程序运行+手离结合 (00:26.265):
+![program manual w/ clutch](./img/program_m_and_c.png)
+
 ## 环境需求
 Install >= Python 3.8
 
 ## 安装
 ```
 pip3 install -r requirements.txt
+git submodule init
 git submodule update --recursive
 ```
 
@@ -21,9 +33,12 @@ git submodule update --recursive
     - 从1档开始，逐渐加速（满油门但不要打滑）直到断油（转速开始疯狂抖动），然后手动升到下一档。依次往复直到最大档，或你只使用的最大档。
     - 按回转暂停数据输出，此时再按F10停止数据分析。
 3. F8 分析收集好的数据，并且会生成车辆性能和发动机分析图:
+![console_analysis](./img/forza_performance_analysis_console.png)
 ![forza_performance_analysis](./img/forza_performance_analysis.png)
 Then the result will be saved at `./config/{car ordinal}.json`
-4. F7 开始自动升降档! 再按一次则可以停止.
+4. F7 开始自动升降档!
+![f7 test](./img/f7_test.png)
+5. 再按一次则可以停止.
 
 ## 杂谈
 1. F7的默认是手离结合。如果不想使用手离，而只想用手动，则可以修改 `constants.py`的参数配置。
