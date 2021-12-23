@@ -1,3 +1,10 @@
+from logger import logger
+import keyboard_helper
+import helper
+import forza
+import constants
+from pynput.keyboard import Listener
+from concurrent.futures import ThreadPoolExecutor
 import os
 import sys
 
@@ -14,10 +21,13 @@ import helper
 import keyboard_helper
 from logger import logger
 
+
 # suppress matplotlib warning while running in threads
 warnings.filterwarnings("ignore", category=UserWarning)
 threadPool = ThreadPoolExecutor(max_workers=8, thread_name_prefix="exec")
-forza5 = forza.Forza(threadPool, constants.packet_format, clutch=constants.enable_clutch)
+forza5 = forza.Forza(threadPool, constants.packet_format,
+                     clutch=constants.enable_clutch)
+
 
 def on_press(key):
     """on press callback
@@ -26,38 +36,46 @@ def on_press(key):
         key: key
     """
     pressed = keyboard_helper.get_key_name(key)
+    if pressed == '`':
+        exit()
     if pressed == constants.collect_data:
         if forza5.isRunning:
             logger.info('stopping gear test')
+
             def stopping():
                 forza5.isRunning = False
             threadPool.submit(stopping)
         else:
             logger.info('starting gear test')
+
             def starting():
                 forza5.isRunning = True
                 forza5.test_gear()
             threadPool.submit(starting)
     elif pressed == constants.analysis:
         if len(forza5.records) <= 0:
-            logger.info(f'load config {constants.example_car_ordinal}.json for analysis as an example')
-            helper.load_config(forza5, os.path.join(constants.root_path, 'example', f'{constants.example_car_ordinal}.json'))
+            logger.info(
+                f'load config {constants.example_car_ordinal}.json for analysis as an example')
+            helper.load_config(forza5, os.path.join(
+                constants.root_path, 'example', f'{constants.example_car_ordinal}.json'))
         logger.info('Analysis')
         forza5.analyze()
         helper.dump_config(forza5)
     elif pressed == constants.auto_shift:
         if forza5.isRunning:
             logger.info('stopping auto gear')
+
             def stopping():
                 forza5.isRunning = False
             threadPool.submit(stopping)
         else:
             logger.info('starting auto gear')
+
             def starting():
                 forza5.isRunning = True
                 forza5.run()
             threadPool.submit(starting)
-    elif pressed ==constants.stop:
+    elif pressed == constants.stop:
         forza5.isRunning = False
         logger.info('stopped')
     elif pressed == constants.close:
@@ -68,7 +86,8 @@ def on_press(key):
     else:
         logger.debug(f'key {pressed} is not supported')
 
-if __name__ == "__main__":
+
+def run():
     try:
         logger.info('Forza Auto Gear Shifting Started!!!')
         # listen to keyboard press event
@@ -78,3 +97,10 @@ if __name__ == "__main__":
         forza5.isRunning = False
         threadPool.shutdown(wait=False)
         logger.info('Forza Auto Gear Shifting Ended!!!')
+
+
+
+
+if __name__ == "__main__":
+
+    run()

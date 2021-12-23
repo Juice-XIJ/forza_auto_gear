@@ -47,6 +47,7 @@ Then the result will be saved at `./config/{car ordinal}.json`
 4. You could modify the log level in `logger.py` for console and file handlers.
 5. Feel free to modify any logic to fit your style.
 
+
 ## Acknowledgments
 - [forza_motorsport](https://github.com/nettrom/forza_motorsport) for data reading protocol
 - [forza-MT-auto](https://github.com/Yuandiaodiaodiao/forza-MT-auto) for the inspirations

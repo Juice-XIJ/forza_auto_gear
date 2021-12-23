@@ -4,6 +4,7 @@ import sys
 
 import constants
 
+
 class Logger:
     def __init__(self):
         """initialization
@@ -14,6 +15,7 @@ class Logger:
         file_handler = logging.FileHandler(os.path.join(log_folder, 'forza5.log'), mode='w')
         console_handler = logging.StreamHandler(sys.stdout)
         console_handler.setLevel(logging.INFO)
+
 
         logging.basicConfig(
             level=logging.DEBUG,
