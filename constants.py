@@ -35,3 +35,6 @@ delayShifttoClutch = 0.06 # delay between pressing shift and releasing clutch
 downShiftCoolDown = 0.3 # cooldown after down shift
 upShiftCoolDown = 0.2 # cooldown after up shift
 blipThrottleDuration = 0.1 # blip the throttle duration. Should be short since keyboard is 100% acceleration output
+
+# === Gear Shift Settings ===
+shift_factor = 0.99

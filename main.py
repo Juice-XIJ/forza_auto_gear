@@ -43,8 +43,7 @@ def on_press(key):
             logger.info(f'load config {constants.example_car_ordinal}.json for analysis as an example')
             helper.load_config(forza5, os.path.join(constants.root_path, 'example', f'{constants.example_car_ordinal}.json'))
         logger.info('Analysis')
-        forza5.analyze()
-        helper.dump_config(forza5)
+        threadPool.submit(forza5.analyze)
     elif pressed == constants.auto_shift:
         if forza5.isRunning:
             logger.info('stopping auto gear')

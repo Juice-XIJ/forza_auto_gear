@@ -95,9 +95,12 @@ class Forza(CarInfo):
         try:
             logger.debug(f'{self.analyze.__name__} started')
             self.shift_point = gear_helper.calculate_optimal_shift_point(self)
+            helper.dump_config(self)
 
             if performance_profile:
+                plt.close()
                 fig, ax = plt.subplots(2, 2)
+                fig.tight_layout()
 
                 # # gear vs ratio at 0, 0
                 helper.plot_gear_ratio(self, ax, 0, 0)
@@ -110,8 +113,6 @@ class Forza(CarInfo):
 
                 # rpm vs speed at 1, 1
                 helper.plot_rpm_speed(self, ax, 1, 1)
-
-                fig.tight_layout()
                 plt.show()
         except BaseException as e:
             logger.exception(e)
@@ -174,7 +175,7 @@ class Forza(CarInfo):
                         return
 
                 gear = fdp.gear
-                if self.maxGear >= gear >= self.minGear:
+                if fdp.speed > 0.1 and self.maxGear >= gear >= self.minGear:
                     iteration = iteration + 1
                     slip = (fdp.tire_slip_ratio_RL + fdp.tire_slip_ratio_RR) / 2
                     speed = fdp.speed * 3.6
@@ -182,8 +183,8 @@ class Forza(CarInfo):
                     accel = fdp.accel
                     fired = False
                     if gear < self.maxGear:
-                        target_rpm = self.shift_point[gear]['rpmo'] * 0.99
-                        target_up_speed = int(self.shift_point[gear]['speed'] * 0.99)
+                        target_rpm = self.shift_point[gear]['rpmo'] * constants.shift_factor
+                        target_up_speed = int(self.shift_point[gear]['speed'] * constants.shift_factor)
                         if rpm > target_rpm and slip < 1 and accel and speed > target_up_speed:
                             logger.debug(f'[{iteration}] up shift triggerred. rpm > target rmp({rpm} > {target_rpm}), speed > target up speed ({speed} > {target_up_speed}), slip {slip}, accel {accel}')
                             gear_helper.up_shift_handle(gear, self)

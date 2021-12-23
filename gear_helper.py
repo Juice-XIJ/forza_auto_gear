@@ -1,10 +1,10 @@
 import time
 
 import numpy as np
-from car_info import CarInfo
 
 import constants
 import keyboard_helper
+from car_info import CarInfo
 from logger import logger
 
 # === Optimal Shift Point ===
