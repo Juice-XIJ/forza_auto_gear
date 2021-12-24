@@ -1,6 +1,7 @@
 import sys
 import tkinter
 import tkinter.ttk
+from tkinter import scrolledtext
 import warnings
 
 from pynput.keyboard import Listener
@@ -218,9 +219,9 @@ class MainWindow:
             helper.load_config(self.forza5,
                                os.path.join(constants.root_path, 'example', f'{constants.example_car_ordinal}.json'))
         self.logger.info('Analysis')
-        self.update_tree()
 
         self.forza5.analyze(performance_profile=performance_profile, is_gui=is_guid)
+        self.update_tree()
 
     def run_handler(self, event):
         """run button callback
@@ -283,10 +284,7 @@ def shutdown(forza: Forza, threadPool: ThreadPoolExecutor, listener: Listener):
 def main():
     """main.....
     """
-    try:
-        MainWindow()
-    except BaseException:
-        pass
+    MainWindow()
 
 
 if __name__ == "__main__":

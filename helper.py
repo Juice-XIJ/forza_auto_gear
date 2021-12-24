@@ -26,7 +26,7 @@ def nextFdp(server_socket: socket, format: str):
     try:
         message, _ = server_socket.recvfrom(1024)
         return ForzaDataPacket(message, packet_format=format)
-    except socket.timeout as e:
+    except BaseException:
         return None
 
 def plot_gear_ratio(forza: CarInfo, ax: axes.Axes = None, row: int = None, col: int = None):
