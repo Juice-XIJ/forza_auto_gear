@@ -1,8 +1,8 @@
 import json
 import os
+import socket
 import sys
 from socket import socket
-import socket
 
 from car_info import CarInfo
 
@@ -11,8 +11,6 @@ import numpy as np
 from fdp import ForzaDataPacket
 from matplotlib import axes
 from matplotlib.pyplot import cm
-
-from logger import logger
 
 
 def nextFdp(server_socket: socket, format: str):
@@ -169,7 +167,7 @@ def dump_config(forza: CarInfo):
         forza (CarInfo): car info
     """
     try:
-        logger.debug(f'{dump_config.__name__} started')
+        forza.logger.debug(f'{dump_config.__name__} started')
         forza.ordinal = forza.records[0]['car_ordinal']
         config = {
             # === dump data and result ===
@@ -185,7 +183,7 @@ def dump_config(forza: CarInfo):
         with open(os.path.join(forza.config_folder, f'{forza.ordinal}.json'), "w") as f:
             json.dump(config, f, default=convert, indent=4)
     finally:
-        logger.debug(f'{dump_config.__name__} ended')
+        forza.logger.debug(f'{dump_config.__name__} ended')
 
 def load_config(forza: CarInfo, path: str):
     """load config as carinfo
@@ -195,7 +193,7 @@ def load_config(forza: CarInfo, path: str):
         path (str): config path
     """
     try:
-        logger.debug(f'{load_config.__name__} started')
+        forza.logger.debug(f'{load_config.__name__} started')
         with open(os.path.join(forza.config_folder, path), "r") as f:
             config = json.loads(f.read())
 
@@ -220,4 +218,4 @@ def load_config(forza: CarInfo, path: str):
         if 'records' in config:
             forza.records = config['records']
     finally:
-        logger.debug(f'{load_config.__name__} ended')
+        forza.logger.debug(f'{load_config.__name__} ended')
