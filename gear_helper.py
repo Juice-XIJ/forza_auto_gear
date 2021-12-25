@@ -5,7 +5,6 @@ import numpy as np
 import constants
 import keyboard_helper
 from car_info import CarInfo
-from logger import logger
 
 # === Optimal Shift Point ===
 # speed = rpm * 60 * (dia of tire * PI ) / gear ratio / other ratio
@@ -35,6 +34,7 @@ def set_car_properties(records: dict, forza: CarInfo):
     forza.minGear = gear_list.min()
     forza.maxGear = gear_list.max()
 
+
 def get_rpm_torque_map(records: dict, forza: CarInfo):
     """get mapping from rpm to torque
 
@@ -62,10 +62,12 @@ def get_rpm_torque_map(records: dict, forza: CarInfo):
 
         lower_rpm = records[g][min_rpm_index]['rpm']
         upper_rpm = records[g][max_rpm_index]['rpm']
-        logger.info(f'For Gear {g}, the min_rpm_index: {min_rpm_index}, max_rpm_index: {max_rpm_index}, rpm range: {lower_rpm} ~ {upper_rpm}')
+        forza.logger.info(
+            f'For Gear {g}, the min_rpm_index: {min_rpm_index}, max_rpm_index: {max_rpm_index}, rpm range: {lower_rpm} ~ {upper_rpm}')
     return res
 
-def get_gear_ratio_map(records: dict):
+
+def get_gear_ratio_map(records: dict, forza):
     """get gear ratio on each gear
 
     Args:
@@ -87,12 +89,13 @@ def get_gear_ratio_map(records: dict):
                 ratio = np.average(ratios)
                 var = tmp_var
 
-        logger.info(f'Gear ratio at Gear {gear} is {ratio}')
+        forza.logger.info(f'Gear ratio at Gear {gear} is {ratio}')
         res[gear] = {
             'ratio': ratio,
         }
 
     return res
+
 
 def get_torque(r: int, record_by_gear: list):
     """get torque by rpm on a specific gear
@@ -110,6 +113,7 @@ def get_torque(r: int, record_by_gear: list):
     r_index = np.abs(rpms - r).argmin()
     return record_by_gear[r_index]['torque']
 
+
 def get_gear_ratio(g: int, gear_ratios: dict):
     """get gear ratio
 
@@ -121,6 +125,7 @@ def get_gear_ratio(g: int, gear_ratios: dict):
         [float]: gear ratio
     """
     return gear_ratios[g]['ratio']
+
 
 def calculate_optimal_shift_point(forza: CarInfo):
     """calculate optimal shift points
@@ -145,7 +150,7 @@ def calculate_optimal_shift_point(forza: CarInfo):
     set_car_properties(forza.records, forza)
 
     # get gear ratio
-    forza.gear_ratios = get_gear_ratio_map(records_by_gears)
+    forza.gear_ratios = get_gear_ratio_map(records_by_gears, forza)
 
     # search optimal rpm from gear G to gear G + 1
     forza.rpm_torque_map = get_rpm_torque_map(records_by_gears, forza)
@@ -171,7 +176,8 @@ def calculate_optimal_shift_point(forza: CarInfo):
                 rpmo = r
                 min_dt_torque = delta
 
-        logger.info(f'Optimal shift point from {gear} to {gear + 1} is at rpm ({min_rpm} ~ {max_rpm}) = {rpmo} r/m, speed = {rpmo * ratio} km/h, delta output torque = {min_dt_torque}')
+        forza.logger.info(
+            f'Optimal shift point from {gear} to {gear + 1} is at rpm ({min_rpm} ~ {max_rpm}) = {rpmo} r/m, speed = {rpmo * ratio} km/h, delta output torque = {min_dt_torque}')
         res[gear] = {
             'rpmo': rpmo,
             'speed': rpmo * ratio
@@ -179,12 +185,14 @@ def calculate_optimal_shift_point(forza: CarInfo):
 
     return res
 
+
 def blip_throttle():
     """blip throttle
     """
     keyboard_helper.pressdown_str(constants.acceleration)
     time.sleep(constants.blipThrottleDuration)
     keyboard_helper.release_str(constants.acceleration)
+
 
 def up_shift_handle(gear: int, forza: CarInfo):
     """up shift
@@ -195,26 +203,30 @@ def up_shift_handle(gear: int, forza: CarInfo):
     """
     cur = time.time()
     if gear < forza.maxGear and cur - forza.last_upshift >= constants.upShiftCoolDown:
-        logger.info(f'[UpShift] up shift fired. gear < maxGear ({gear}, {forza.maxGear}) and gap >= upShiftCoolDown ({cur - forza.last_upshift}, {constants.upShiftCoolDown})')
+        forza.logger.info(
+            f'[UpShift] up shift fired. gear < maxGear ({gear}, {forza.maxGear}) and gap >= upShiftCoolDown ({cur - forza.last_upshift}, {constants.upShiftCoolDown})')
         forza.last_upshift = cur
         if forza.clutch:
             def press():
                 keyboard_helper.pressdown_str(constants.clutch)
-                logger.debug(f'[UpShift] clutch {constants.clutch} down on {gear}')
+                forza.logger.debug(f'[UpShift] clutch {constants.clutch} down on {gear}')
+
             forza.threadPool.submit(press)
 
         time.sleep(constants.delayClutchtoShift)
         # up shift and delay
         keyboard_helper.press_str(constants.upshift)
-        logger.debug(f'[UpShift] upshift {constants.upshift} down and up on {gear}')
+        forza.logger.debug(f'[UpShift] upshift {constants.upshift} down and up on {gear}')
 
         time.sleep(constants.delayShifttoClutch)
         if forza.clutch:
             # release clutch
             keyboard_helper.release_str(constants.clutch)
-            logger.debug(f'[UpShift] clutch {constants.clutch} up on {gear}')
+            forza.logger.debug(f'[UpShift] clutch {constants.clutch} up on {gear}')
     else:
-        logger.debug(f'[UpShift] skip up shift. gear >= maxGear ({gear}, {forza.maxGear}) or gap < upShiftCoolDown ({cur - forza.last_upshift}, {constants.upShiftCoolDown})')
+        forza.logger.debug(
+            f'[UpShift] skip up shift. gear >= maxGear ({gear}, {forza.maxGear}) or gap < upShiftCoolDown ({cur - forza.last_upshift}, {constants.upShiftCoolDown})')
+
 
 def down_shift_handle(gear: int, forza: CarInfo):
     """down shift
@@ -225,13 +237,14 @@ def down_shift_handle(gear: int, forza: CarInfo):
     """
     cur = time.time()
     if gear > forza.minGear and cur - forza.last_downshift >= constants.downShiftCoolDown:
-        logger.info(f'[DownShift] down shift fired. gear > minGear ({gear}, {forza.minGear}) or gap >= downShiftCoolDown ({cur - forza.last_downshift}, {constants.downShiftCoolDown})')
+        forza.logger.info(
+            f'[DownShift] down shift fired. gear > minGear ({gear}, {forza.minGear}) or gap >= downShiftCoolDown ({cur - forza.last_downshift}, {constants.downShiftCoolDown})')
         forza.last_downshift = cur
 
         if forza.clutch:
             # press and hold clutch, then delay
             keyboard_helper.pressdown_str(constants.clutch)
-            logger.debug(f'[DownShift] clutch {constants.clutch} down on {gear}')
+            forza.logger.debug(f'[DownShift] clutch {constants.clutch} down on {gear}')
 
             # blip throttle
             forza.threadPool.submit(blip_throttle)
@@ -239,12 +252,13 @@ def down_shift_handle(gear: int, forza: CarInfo):
         time.sleep(constants.delayClutchtoShift)
         # down shift and delay
         keyboard_helper.press_str(constants.downshift)
-        logger.debug(f'[DownShift] downshift {constants.upshift} down and up on {gear}')
+        forza.logger.debug(f'[DownShift] downshift {constants.upshift} down and up on {gear}')
 
         time.sleep(constants.delayShifttoClutch)
         if forza.clutch:
             # release clutch
             keyboard_helper.release_str(constants.clutch)
-            logger.debug(f'[DownShift] clutch {constants.clutch} up on {gear}')
+            forza.logger.debug(f'[DownShift] clutch {constants.clutch} up on {gear}')
     else:
-        logger.debug(f'[DownShift] skip down shift. gear <= minGear ({gear}, {forza.minGear}) or gap < downShiftCoolDown ({cur - forza.last_downshift}, {constants.downShiftCoolDown})')
+        forza.logger.debug(
+            f'[DownShift] skip down shift. gear <= minGear ({gear}, {forza.minGear}) or gap < downShiftCoolDown ({cur - forza.last_downshift}, {constants.downShiftCoolDown})')

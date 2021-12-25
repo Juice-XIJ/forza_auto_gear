@@ -12,6 +12,9 @@ class CarInfo():
         self.shift_point = {}
         self.records = []
 
+        # === logger ===
+        self.logger = None
+
     def get_gear_raw_records(self, g: int):
         """get raw records for gear
 
