@@ -6,7 +6,6 @@ import constants
 import keyboard_helper
 from car_info import CarInfo
 
-
 # === Optimal Shift Point ===
 # speed = rpm * 60 * (dia of tire * PI ) / gear ratio / other ratio
 # dia of tire, other ratio and PI are constants, said C. So we have:

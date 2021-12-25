@@ -55,8 +55,11 @@ class Forza(CarInfo):
         self.last_upshift = time.time()
         self.last_downshift = time.time()
 
-    def test_gear(self):
+    def test_gear(self, update_car_gui_func=None):
         """collect gear information
+
+        Args:
+            update_car_gui_func (optional): callback to update car gui. Defaults to None.
         """
         try:
             self.logger.debug(f'{self.test_gear.__name__} started')
@@ -67,6 +70,8 @@ class Forza(CarInfo):
                     continue
 
                 if fdp.speed > 0.1:
+                    if update_car_gui_func is not None:
+                        update_car_gui_func(fdp)
                     info = {
                         'gear': fdp.gear,
                         'rpm': fdp.current_engine_rpm,
@@ -95,6 +100,7 @@ class Forza(CarInfo):
 
         Args:
             performance_profile (bool, optional): plot figures or not. Defaults to True.
+            is_guid (bool, optional): is gui. Defaults to False
         """
         try:
             self.logger.debug(f'{self.analyze.__name__} started')
@@ -156,8 +162,12 @@ class Forza(CarInfo):
         finally:
             self.logger.debug(f'{self.__try_auto_load_config.__name__} ended')
 
-    def run(self, update_tree_func=None):
+    def run(self, update_tree_func=None, update_car_gui_func=None):
         """run the auto shifting
+
+        Args:
+            update_tree_func (, optional): update tree view callback. Defaults to None.
+            update_car_gui_func (, optional): update car gui callback. Defaults to None.
         """
         try:
             self.logger.debug(f'{self.run.__name__} started')
@@ -171,6 +181,8 @@ class Forza(CarInfo):
                 if fdp.car_ordinal <= 0:
                     continue
 
+                if update_car_gui_func is not None:
+                    update_car_gui_func(fdp)
                 # try to load config if:
                 # 1. self.shift_point is empty
                 # or

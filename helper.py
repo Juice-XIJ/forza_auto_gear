@@ -219,3 +219,16 @@ def load_config(forza: CarInfo, path: str):
             forza.records = config['records']
     finally:
         forza.logger.debug(f'{load_config.__name__} ended')
+
+def rgb(r, g, b):
+    """generate rbg in hex
+
+    Args:
+        r
+        g
+        b
+
+    Returns:
+        rgb in hex
+    """
+    return "#%s%s%s" % tuple([hex(int(c * 255))[2:].rjust(2, "0") for c in (r, g, b)])
