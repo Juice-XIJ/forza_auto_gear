@@ -11,7 +11,6 @@ from pynput.keyboard import Listener
 import constants
 import forza
 import helper
-import keyboard_helper
 
 # suppress matplotlib warning while running in threads
 warnings.filterwarnings("ignore", category=UserWarning)
@@ -25,8 +24,7 @@ def on_press(key):
     Args:
         key: key
     """
-    pressed = keyboard_helper.get_key_name(key)
-    if pressed == constants.collect_data:
+    if key == constants.collect_data:
         if forza5.isRunning:
             forza5.logger.info('stopping gear test')
 
@@ -42,14 +40,14 @@ def on_press(key):
                 forza5.test_gear()
 
             threadPool.submit(starting)
-    elif pressed == constants.analysis:
+    elif key == constants.analysis:
         if len(forza5.records) <= 0:
             forza5.logger.info(f'load config {constants.example_car_ordinal}.json for analysis as an example')
             helper.load_config(forza5,
                                os.path.join(constants.root_path, 'example', f'{constants.example_car_ordinal}.json'))
         forza5.logger.info('Analysis')
         threadPool.submit(forza5.analyze)
-    elif pressed == constants.auto_shift:
+    elif key == constants.auto_shift:
         if forza5.isRunning:
             forza5.logger.info('stopping auto gear')
 
@@ -65,16 +63,14 @@ def on_press(key):
                 forza5.run()
 
             threadPool.submit(starting)
-    elif pressed == constants.stop:
+    elif key == constants.stop:
         forza5.isRunning = False
         forza5.logger.info('stopped')
-    elif pressed == constants.close:
+    elif key == constants.close:
         forza5.isRunning = False
         threadPool.shutdown(wait=False)
         forza5.logger.info('bye~')
         exit()
-    else:
-        forza5.logger.debug(f'key {pressed} is not supported')
 
 
 if __name__ == "__main__":
