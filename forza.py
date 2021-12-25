@@ -129,6 +129,7 @@ class Forza(CarInfo):
                 plt.show()
         except BaseException as e:
             self.logger.exception(e)
+            self.logger.info("something went wrong. please re-test the car")
         finally:
             self.logger.debug(f'{self.analyze.__name__} ended')
 

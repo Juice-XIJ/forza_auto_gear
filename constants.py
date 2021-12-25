@@ -1,4 +1,5 @@
 import os
+from pynput.keyboard import Key
 
 # repo path
 root_path = os.path.dirname(os.path.abspath(__file__))
@@ -42,11 +43,11 @@ tires = {
 }
 
 # === short-cut ===
-stop = 'pause' # stop program
-close = 'end' # close program
-collect_data = 'f10'
-analysis = 'f8'
-auto_shift = 'f7'
+stop = Key.pause # stop program
+close = Key.end # close program
+collect_data = Key.f10
+analysis = Key.f8
+auto_shift = Key.f7
 
 # === Keyboard ===
 clutch = 'i' # clutch

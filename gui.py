@@ -137,16 +137,15 @@ class MainWindow:
         Args:
             key: key
         """
-        pressed = keyboard_helper.get_key_name(key)
-        if pressed == constants.collect_data:
+        if key == constants.collect_data:
             self.collect_data_handler(None)
-        elif pressed == constants.analysis:
+        elif key == constants.analysis:
             self.analysis_handler(None, performance_profile=False, is_guid=False)
-        elif pressed == constants.auto_shift:
+        elif key == constants.auto_shift:
             self.run_handler(None)
-        elif pressed == constants.stop:
+        elif key == constants.stop:
             self.pause_handler(None)
-        elif pressed == constants.close:
+        elif key == constants.close:
             self.exit_handler(None)
 
     def close(self):
@@ -262,7 +261,7 @@ class MainWindow:
                         ('Exit', self.exit_handler, constants.close)]
 
         for i, (name, func, shortcut) in enumerate(button_names):
-            button = tkinter.Button(self.button_frame, text=f'{name} ({shortcut.capitalize()})',
+            button = tkinter.Button(self.button_frame, text=f'{name} ({shortcut.name})',
                                     bg=constants.background_color, fg=constants.text_color, borderwidth=3,
                                     highlightcolor=constants.text_color, highlightthickness=True)
             button.bind('<Button-1>', func)
@@ -378,6 +377,7 @@ class MainWindow:
         shutdown(self.forza5, self.threadPool, self.listener)
         self.reset_car_info()
         self.threadPool = ThreadPoolExecutor(max_workers=8, thread_name_prefix="exec")
+        self.forza5.threadPool = self.threadPool
         self.listener = Listener(on_press=self.on_press)
         self.listener.start()
         self.forza5.logger.info('stopped')
