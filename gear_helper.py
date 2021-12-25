@@ -50,10 +50,14 @@ def get_rpm_torque_map(records: dict, forza: CarInfo):
     # find rpm range
     for g in range(forza.minGear, forza.maxGear + 1):
         torques = np.array([item['torque'] for item in records[g]])
+        rpms = np.array([item['rpm'] for item in records[g]])
 
         # first min_rpm_index that torque > 0 and max_rpm_index point that torque < 0 and after min_rpm_index
         min_rpm_index = np.argmax(torques > 0)
-        max_rpm_index = np.argmax(torques[min_rpm_index:] < 0) + min_rpm_index
+
+        # find the oil-cut position. If not found, then use the max rpm point
+        pos = np.argmax(torques[min_rpm_index:] < 0)
+        max_rpm_index = pos if pos > 0 else np.argmax(rpms[min_rpm_index:]) + min_rpm_index
 
         res[g] = {
             'min_rpm_index': min_rpm_index,
