@@ -46,6 +46,7 @@ Then the result will be saved at `./config/{car ordinal}.json`
 
     - Command Line:
     ![f7 test](./img/f7_test.png)
+5. 如何你想在极其长的蓝图刷经验或者技能点， 可以开启刷图模式，即图形界面左侧，勾选`farm`选项即可。他会帮你定时刹车来避免AFK检测，以及当你的车卡在某个地方的时候，自动重置车的位置。
 
 ## 杂谈
 1. F7的默认是手离结合。如果不想使用手离，而只想用手动，则可以修改 `constants.py`的参数配置。如果使用图形界面，则可以在左上角直接进行修改。
