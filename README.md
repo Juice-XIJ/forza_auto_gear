@@ -46,6 +46,7 @@ Then the result will be saved at `./config/{car ordinal}.json`
 
     - Command Line:
     ![f7 test](./img/f7_test.png)
+5. If you are running exp and skill point farming in long blueprint, you could enable the farming mode in GUI left panel by checking `farm`. It will help you press brake to avoid AFK detection and reset car position if you got stuck.
 
 ## Moreover
 1. By default the shifting mode is Manual with Clutch. You could change it in `constants.py`. If you are using the GUI, you could switch Clutch at the top right corner.
