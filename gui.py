@@ -8,7 +8,6 @@ import matplotlib.colors as mcolors
 from pynput.keyboard import Listener
 
 import constants
-import keyboard_helper
 
 sys.path.append(r'./forza_motorsport')
 
@@ -60,7 +59,7 @@ class MainWindow:
         self.forza5 = Forza(self.threadPool, self.logger, constants.packet_format, clutch=constants.enable_clutch)
         self.listener = Listener(on_press=self.on_press)
 
-        self.set_car_info_frame()
+        self.set_car_setting_frame()
         self.set_car_perf_frame()
         self.set_shift_point_frame()
         self.set_button_frame()
@@ -154,15 +153,15 @@ class MainWindow:
         shutdown(self.forza5, self.threadPool, self.listener)
         self.root.destroy()
 
-    def set_car_info_frame(self):
-        """set car info frame
+    def set_car_setting_frame(self):
+        """set car setting frame
         """
-        # place car info frame
+        # place car setting frame
         self.car_info_frame = tkinter.Frame(self.root, border=0, bg=constants.background_color, relief="groove",
                                             highlightthickness=True, highlightcolor=constants.text_color)
 
-        enable_clutch = tkinter.IntVar(value=1)
-
+        # clutch setting
+        enable_clutch = tkinter.IntVar(value=self.forza5.clutch)
         def set_clutch():
             self.forza5.clutch = enable_clutch.get()
 
@@ -170,6 +169,16 @@ class MainWindow:
                                            variable=enable_clutch, bg=constants.background_color, command=set_clutch,
                                            fg=constants.text_color)
         clutch_check.place(relx=0.05, rely=0.03, anchor="w")
+
+        # farming setting
+        enable_farm = tkinter.IntVar(value=self.forza5.farming)
+        def set_farm():
+            self.forza5.farming = enable_farm.get()
+
+        farm_check = tkinter.Checkbutton(self.car_info_frame, text='Farm', onvalue=1, offvalue=0,
+                                           variable=enable_farm, bg=constants.background_color, command=set_farm,
+                                           fg=constants.text_color)
+        farm_check.place(relx=0.05, rely=0.08, anchor="w")
         self.car_info_frame.grid(row=0, column=0, sticky='news')
 
     def set_car_perf_frame(self):
@@ -277,7 +286,7 @@ class MainWindow:
         self.log_frame = tkinter.Frame(self.root, border=0, bg=constants.background_color, relief="groove",
                                        highlightthickness=True, highlightcolor=constants.text_color)
 
-        log = tkinter.scrolledtext.ScrolledText(self.log_frame, bg=constants.background_color, borderwidth=2,
+        log = scrolledtext.ScrolledText(self.log_frame, bg=constants.background_color, borderwidth=2,
                                                 font='Monaco 9 bold', fg=constants.text_color)
         log.pack(fill="both", expand=True)
         log_handler = TextHandler(log)

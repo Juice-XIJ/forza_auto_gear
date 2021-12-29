@@ -251,7 +251,8 @@ def down_shift_handle(gear: int, forza: CarInfo):
             forza.logger.debug(f'[DownShift] clutch {constants.clutch} down on {gear}')
 
             # blip throttle
-            forza.threadPool.submit(blip_throttle)
+            if not forza.farming:
+                forza.threadPool.submit(blip_throttle)
 
         time.sleep(constants.delayClutchtoShift)
         # down shift and delay

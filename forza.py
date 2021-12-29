@@ -11,6 +11,7 @@ from fdp import ForzaDataPacket
 import constants
 import gear_helper
 import helper
+import keyboard_helper
 from car_info import CarInfo
 from logger import Logger
 
@@ -38,6 +39,7 @@ class Forza(CarInfo):
         self.isRunning = False
         self.threadPool = threadPool
         self.clutch = clutch
+        self.farming = False
 
         # constant
         self.config_folder = os.path.join(constants.root_path, 'config')
@@ -173,6 +175,8 @@ class Forza(CarInfo):
         try:
             self.logger.debug(f'{self.run.__name__} started')
             iteration = -1
+            reset_car = 0
+            reset_time = time.time()
             while self.isRunning:
                 fdp = helper.nextFdp(self.server_socket, self.packet_format)
                 if fdp is None:
@@ -195,10 +199,55 @@ class Forza(CarInfo):
                         continue
                     else:
                         return
+                if iteration == -1:
+                    if update_tree_func is not None:
+                        update_tree_func()
 
                 gear = fdp.gear
+
+                # enable reset car if exp or sp farming is True
+                if self.farming and fdp.car_ordinal > 0 and fdp.speed < 20 and time.time() - reset_time > 10:
+                    reset_car = reset_car + 1
+                    # reset car position
+                    if reset_car == 200:
+                        reset_car = 0
+                        def resetcar():
+                            self.logger.info("reset the car!!!")
+
+                            # press esc
+                            keyboard_helper.pressdown_str('esc')
+                            time.sleep(0.3)
+                            keyboard_helper.release_str('esc')
+
+                            # press x
+                            time.sleep(2)
+                            keyboard_helper.pressdown_str('x')
+                            time.sleep(0.3)
+                            keyboard_helper.release_str('x')
+
+                            # press enter
+                            keyboard_helper.pressdown_str('enter')
+                            time.sleep(0.3)
+                            keyboard_helper.release_str('enter')
+
+                        self.threadPool.submit(resetcar)
+                        reset_time = time.time()
+                    continue
+                else:
+                    reset_car = 0
+
                 if fdp.speed > 0.1 and gear >= self.minGear:
                     iteration = iteration + 1
+
+                    # exp or sp farming to avoid afk detection
+                    if self.farming:
+                        if iteration % 800 == 0:
+                            def press_s():
+                                self.logger.info("Brake!!!!!")
+                                keyboard_helper.pressdown_str('s')
+                                time.sleep(0.2)
+                                keyboard_helper.release_str('s')
+                            self.threadPool.submit(press_s)
                     slip = (fdp.tire_slip_ratio_RL + fdp.tire_slip_ratio_RR) / 2
                     speed = fdp.speed * 3.6
                     rpm = fdp.current_engine_rpm
