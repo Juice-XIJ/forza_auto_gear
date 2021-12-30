@@ -1,7 +1,5 @@
 import ctypes
-import enum
 import time
-from pynput.keyboard import Key
 
 import win32api
 import win32con
@@ -154,6 +152,8 @@ keybind = {
     "'":0xDE,
     '`':0xC0
 }
+
+key_list = keybind.keys()
 
 def pressdown_str(keystr: str):
     """press down key

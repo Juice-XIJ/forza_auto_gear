@@ -54,6 +54,9 @@ clutch = 'i' # clutch
 upshift = 'e' # up shift
 downshift = 'q' # down shift
 acceleration = 'w' # acceleration
+brake = 's' # brake
+boundKeys = [stop.name, close.name, collect_data.name, analysis.name, auto_shift.name]
+
 
 # === Delay Settings ===
 delayClutchtoShift = 0 # delay between pressing clutch and shift

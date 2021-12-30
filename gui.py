@@ -56,7 +56,7 @@ class MainWindow:
 
         # forza info
         self.threadPool = ThreadPoolExecutor(max_workers=8, thread_name_prefix="exec")
-        self.forza5 = Forza(self.threadPool, self.logger, constants.packet_format, clutch=constants.enable_clutch)
+        self.forza5 = Forza(self.threadPool, self.logger, constants.packet_format, enable_clutch=constants.enable_clutch)
         self.listener = Listener(on_press=self.on_press)
 
         self.set_car_setting_frame()
@@ -153,22 +153,96 @@ class MainWindow:
         shutdown(self.forza5, self.threadPool, self.listener)
         self.root.destroy()
 
+    def place_shortcuts(self):
+        def get_available_shortcuts(cur_shortcut):
+            all_boundKeys = self.forza5.boundKeys()
+            all_boundKeys.extend(constants.boundKeys)
+            return [x for x in keyboard_helper.key_list if x not in all_boundKeys or x == cur_shortcut]
+        shortcut_list = []
+        # ==== short-cut options ====
+        # == define clutch shortcuts ==
+        # clutch shortcut label
+        clutch_shortcut_label = tkinter.Label(self.car_info_frame, text="Clutch Shortcut:", bg=constants.background_color, fg=constants.text_color)
+        shortcut_list.append(tuple((clutch_shortcut_label, "")))
+
+        # clutch options
+        clutch_shortcuts = get_available_shortcuts(self.forza5.clutch)
+        clutch_shortcut = tkinter.ttk.Combobox(self.car_info_frame, values=clutch_shortcuts, state='readonly')
+        clutch_shortcut.current(clutch_shortcuts.index(self.forza5.clutch))
+        shortcut_list.append(tuple((clutch_shortcut, "clutch")))
+
+        # == upshift shortcut ==
+        # upshift short label
+        upshift_shortcut_label = tkinter.Label(self.car_info_frame, text="Upshift Shortcut:", bg=constants.background_color, fg=constants.text_color)
+        shortcut_list.append(tuple((upshift_shortcut_label, "")))
+
+        # upshift options
+        upshift_shortcuts = get_available_shortcuts(self.forza5.upshift)
+        upshift_shortcut = tkinter.ttk.Combobox(self.car_info_frame, values=upshift_shortcuts, state='readonly')
+        upshift_shortcut.current(upshift_shortcuts.index(self.forza5.upshift))
+        shortcut_list.append(tuple((upshift_shortcut, "upshift")))
+
+        # == downshift shortcut ==
+        # downshift short label
+        downshift_shortcut_label = tkinter.Label(self.car_info_frame, text="Downshift Shortcut:", bg=constants.background_color, fg=constants.text_color)
+        shortcut_list.append(tuple((downshift_shortcut_label, "")))
+
+        # downshift options
+        downshift_shortcuts = get_available_shortcuts(self.forza5.downshift)
+        downshift_shortcut = tkinter.ttk.Combobox(self.car_info_frame, values=downshift_shortcuts, state='readonly')
+        downshift_shortcut.current(downshift_shortcuts.index(self.forza5.downshift))
+        shortcut_list.append(tuple((downshift_shortcut, "downshift")))
+
+        all_combobox = [box[0] for box in shortcut_list if type(box[0]) is tkinter.ttk.Combobox]
+        for i in range(len(shortcut_list)):
+            if type(shortcut_list[i][0]) is tkinter.Label:
+                shortcut_list[i][0].place(relx=0.06, rely=self.get_rely(i), anchor="w")
+            elif type(shortcut_list[i][0]) is tkinter.ttk.Combobox:
+                def set_clutch_shortcut(event):
+                    box = [x for x in shortcut_list if x[0] == event.widget][0]
+                    if box[1] == "clutch":
+                        self.forza5.clutch = event.widget.get()
+                        self.logger.info(f"clutch shortcut is: {self.forza5.clutch}")
+                    elif box[1] == "upshift":
+                        self.forza5.upshift = event.widget.get()
+                        self.logger.info(f"upshift shortcut is: {self.forza5.upshift}")
+                    elif box[1] == "downshift":
+                        self.forza5.downshift = event.widget.get()
+                        self.logger.info(f"downshift shortcut is: {self.forza5.downshift}")
+
+                    for box in all_combobox:
+                        box['values'] = get_available_shortcuts(box.get())
+
+                shortcut_list[i][0].bind("<<ComboboxSelected>>", set_clutch_shortcut)
+                shortcut_list[i][0].place(relx=0.08, rely=self.get_rely(i), anchor="w")
+
+        return len(shortcut_list)
+
+    def get_rely(self, count):
+        return 0.03 + 0.05 * count
+
+
     def set_car_setting_frame(self):
         """set car setting frame
         """
         # place car setting frame
         self.car_info_frame = tkinter.Frame(self.root, border=0, bg=constants.background_color, relief="groove",
                                             highlightthickness=True, highlightcolor=constants.text_color)
+        # ==== place shortcuts ====
+        shortcut_count = self.place_shortcuts()
 
+        # ==== features settings ====
+        features_pos = shortcut_count
         # clutch setting
-        enable_clutch = tkinter.IntVar(value=self.forza5.clutch)
+        enable_clutch = tkinter.IntVar(value=self.forza5.enable_clutch)
         def set_clutch():
-            self.forza5.clutch = enable_clutch.get()
+            self.forza5.enable_clutch = enable_clutch.get()
 
         clutch_check = tkinter.Checkbutton(self.car_info_frame, text='Clutch', onvalue=1, offvalue=0,
                                            variable=enable_clutch, bg=constants.background_color, command=set_clutch,
                                            fg=constants.text_color)
-        clutch_check.place(relx=0.05, rely=0.03, anchor="w")
+        clutch_check.place(relx=0.05, rely=self.get_rely(features_pos), anchor="w")
+        features_pos = features_pos + 1
 
         # farming setting
         enable_farm = tkinter.IntVar(value=self.forza5.farming)
@@ -178,7 +252,8 @@ class MainWindow:
         farm_check = tkinter.Checkbutton(self.car_info_frame, text='Farm', onvalue=1, offvalue=0,
                                            variable=enable_farm, bg=constants.background_color, command=set_farm,
                                            fg=constants.text_color)
-        farm_check.place(relx=0.05, rely=0.08, anchor="w")
+        farm_check.place(relx=0.05, rely=self.get_rely(features_pos), anchor="w")
+        features_pos = features_pos + 1
         self.car_info_frame.grid(row=0, column=0, sticky='news')
 
     def set_car_perf_frame(self):
