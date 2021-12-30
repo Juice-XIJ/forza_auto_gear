@@ -212,21 +212,21 @@ def up_shift_handle(gear: int, forza: CarInfo):
         forza.last_upshift = cur
         if forza.clutch:
             def press():
-                keyboard_helper.pressdown_str(constants.clutch)
-                forza.logger.debug(f'[UpShift] clutch {constants.clutch} down on {gear}')
+                keyboard_helper.pressdown_str(forza.clutch)
+                forza.logger.debug(f'[UpShift] clutch {forza.clutch} down on {gear}')
 
             forza.threadPool.submit(press)
 
         time.sleep(constants.delayClutchtoShift)
         # up shift and delay
-        keyboard_helper.press_str(constants.upshift)
-        forza.logger.debug(f'[UpShift] upshift {constants.upshift} down and up on {gear}')
+        keyboard_helper.press_str(forza.upshift)
+        forza.logger.debug(f'[UpShift] upshift {forza.upshift} down and up on {gear}')
 
         time.sleep(constants.delayShifttoClutch)
         if forza.clutch:
             # release clutch
-            keyboard_helper.release_str(constants.clutch)
-            forza.logger.debug(f'[UpShift] clutch {constants.clutch} up on {gear}')
+            keyboard_helper.release_str(forza.clutch)
+            forza.logger.debug(f'[UpShift] clutch {forza.clutch} up on {gear}')
     else:
         forza.logger.debug(
             f'[UpShift] skip up shift. gear >= maxGear ({gear}, {forza.maxGear}) or gap < upShiftCoolDown ({cur - forza.last_upshift}, {constants.upShiftCoolDown})')
@@ -247,8 +247,8 @@ def down_shift_handle(gear: int, forza: CarInfo):
 
         if forza.clutch:
             # press and hold clutch, then delay
-            keyboard_helper.pressdown_str(constants.clutch)
-            forza.logger.debug(f'[DownShift] clutch {constants.clutch} down on {gear}')
+            keyboard_helper.pressdown_str(forza.clutch)
+            forza.logger.debug(f'[DownShift] clutch {forza.clutch} down on {gear}')
 
             # blip throttle
             if not forza.farming:
@@ -256,14 +256,14 @@ def down_shift_handle(gear: int, forza: CarInfo):
 
         time.sleep(constants.delayClutchtoShift)
         # down shift and delay
-        keyboard_helper.press_str(constants.downshift)
-        forza.logger.debug(f'[DownShift] downshift {constants.upshift} down and up on {gear}')
+        keyboard_helper.press_str(forza.downshift)
+        forza.logger.debug(f'[DownShift] downshift {forza.upshift} down and up on {gear}')
 
         time.sleep(constants.delayShifttoClutch)
         if forza.clutch:
             # release clutch
-            keyboard_helper.release_str(constants.clutch)
-            forza.logger.debug(f'[DownShift] clutch {constants.clutch} up on {gear}')
+            keyboard_helper.release_str(forza.clutch)
+            forza.logger.debug(f'[DownShift] clutch {forza.clutch} up on {gear}')
     else:
         forza.logger.debug(
             f'[DownShift] skip down shift. gear <= minGear ({gear}, {forza.minGear}) or gap < downShiftCoolDown ({cur - forza.last_downshift}, {constants.downShiftCoolDown})')

@@ -17,13 +17,13 @@ from logger import Logger
 
 
 class Forza(CarInfo):
-    def __init__(self, threadPool: ThreadPoolExecutor, logger: Logger = None, packet_format='fh4', clutch = False):
+    def __init__(self, threadPool: ThreadPoolExecutor, logger: Logger = None, packet_format='fh4', enable_clutch = False):
         """initialization
 
         Args:
             threadPool (ThreadPoolExecutor): threadPool
             packet_format (str, optional): packet_format. Defaults to 'fh4'.
-            clutch (bool, optional): clutch. Defaults to False.
+            enable_clutch (bool, optional): enable_clutch. Defaults to False.
         """
         super().__init__()
 
@@ -38,8 +38,14 @@ class Forza(CarInfo):
         self.packet_format = packet_format
         self.isRunning = False
         self.threadPool = threadPool
-        self.clutch = clutch
+        self.enable_clutch = enable_clutch
         self.farming = False
+
+        # shortcuts
+        self.clutch = constants.clutch
+        self.upshift = constants.upshift
+        self.downshift = constants.downshift
+        self.boundKeys = lambda: [self.clutch, self.upshift, self.downshift]
 
         # constant
         self.config_folder = os.path.join(constants.root_path, 'config')
@@ -244,9 +250,9 @@ class Forza(CarInfo):
                         if iteration % 800 == 0:
                             def press_s():
                                 self.logger.info("Brake!!!!!")
-                                keyboard_helper.pressdown_str('s')
+                                keyboard_helper.pressdown_str(constants.brake)
                                 time.sleep(0.2)
-                                keyboard_helper.release_str('s')
+                                keyboard_helper.release_str(constants.brake)
                             self.threadPool.submit(press_s)
                     slip = (fdp.tire_slip_ratio_RL + fdp.tire_slip_ratio_RR) / 2
                     speed = fdp.speed * 3.6
