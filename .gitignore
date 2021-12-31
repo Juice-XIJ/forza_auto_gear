@@ -5,3 +5,4 @@ log/**
 .vscode/**
 backup/**
 .idea/**
+tests/__pycache__/**

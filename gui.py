@@ -1,18 +1,17 @@
-import sys
+import os
 import tkinter
 import tkinter.ttk
 import warnings
+from concurrent.futures import ThreadPoolExecutor
 from tkinter import scrolledtext
 
 import matplotlib.colors as mcolors
 from pynput.keyboard import Listener
 
 import constants
-
-sys.path.append(r'./forza_motorsport')
-
 import helper
-from forza import *
+import keyboard_helper
+from forza import Forza
 from logger import Logger, TextHandler
 
 # suppress matplotlib warning while running in thread
@@ -20,6 +19,7 @@ warnings.filterwarnings("ignore", category=UserWarning)
 
 
 class MainWindow:
+
     def __init__(self):
         """init
         """
@@ -154,10 +154,14 @@ class MainWindow:
         self.root.destroy()
 
     def place_shortcuts(self):
+        """place shortcuts comboboxes
+        """
+
         def get_available_shortcuts(cur_shortcut):
             all_boundKeys = self.forza5.boundKeys()
             all_boundKeys.extend(constants.boundKeys)
             return [x for x in keyboard_helper.key_list if x not in all_boundKeys or x == cur_shortcut]
+
         shortcut_list = []
         # ==== short-cut options ====
         # == define clutch shortcuts ==
@@ -198,6 +202,7 @@ class MainWindow:
             if type(shortcut_list[i][0]) is tkinter.Label:
                 shortcut_list[i][0].place(relx=0.06, rely=self.get_rely(i), anchor="w")
             elif type(shortcut_list[i][0]) is tkinter.ttk.Combobox:
+
                 def set_clutch_shortcut(event):
                     box = [x for x in shortcut_list if x[0] == event.widget][0]
                     if box[1] == "clutch":
@@ -219,15 +224,21 @@ class MainWindow:
         return len(shortcut_list)
 
     def get_rely(self, count):
-        return 0.03 + 0.05 * count
+        """get relative y
 
+        Args:
+            count (int): previous widgets count
+
+        Returns:
+            float: relative y
+        """
+        return 0.03 + 0.05 * count
 
     def set_car_setting_frame(self):
         """set car setting frame
         """
         # place car setting frame
-        self.car_info_frame = tkinter.Frame(self.root, border=0, bg=constants.background_color, relief="groove",
-                                            highlightthickness=True, highlightcolor=constants.text_color)
+        self.car_info_frame = tkinter.Frame(self.root, border=0, bg=constants.background_color, relief="groove", highlightthickness=True, highlightcolor=constants.text_color)
         # ==== place shortcuts ====
         shortcut_count = self.place_shortcuts()
 
@@ -235,23 +246,21 @@ class MainWindow:
         features_pos = shortcut_count
         # clutch setting
         enable_clutch = tkinter.IntVar(value=self.forza5.enable_clutch)
+
         def set_clutch():
             self.forza5.enable_clutch = enable_clutch.get()
 
-        clutch_check = tkinter.Checkbutton(self.car_info_frame, text='Clutch', onvalue=1, offvalue=0,
-                                           variable=enable_clutch, bg=constants.background_color, command=set_clutch,
-                                           fg=constants.text_color)
+        clutch_check = tkinter.Checkbutton(self.car_info_frame, text='Clutch', onvalue=1, offvalue=0, variable=enable_clutch, bg=constants.background_color, command=set_clutch, fg=constants.text_color)
         clutch_check.place(relx=0.05, rely=self.get_rely(features_pos), anchor="w")
         features_pos = features_pos + 1
 
         # farming setting
         enable_farm = tkinter.IntVar(value=self.forza5.farming)
+
         def set_farm():
             self.forza5.farming = enable_farm.get()
 
-        farm_check = tkinter.Checkbutton(self.car_info_frame, text='Farm', onvalue=1, offvalue=0,
-                                           variable=enable_farm, bg=constants.background_color, command=set_farm,
-                                           fg=constants.text_color)
+        farm_check = tkinter.Checkbutton(self.car_info_frame, text='Farm', onvalue=1, offvalue=0, variable=enable_farm, bg=constants.background_color, command=set_farm, fg=constants.text_color)
         farm_check.place(relx=0.05, rely=self.get_rely(features_pos), anchor="w")
         features_pos = features_pos + 1
         self.car_info_frame.grid(row=0, column=0, sticky='news')
@@ -260,61 +269,50 @@ class MainWindow:
         """set car perf frame
         """
         # Place car perf frame
-        self.car_perf_frame = tkinter.Frame(self.root, border=0, bg=constants.background_color, relief="groove",
-                                            highlightthickness=True, highlightcolor=constants.text_color)
+        self.car_perf_frame = tkinter.Frame(self.root, border=0, bg=constants.background_color, relief="groove", highlightthickness=True, highlightcolor=constants.text_color)
         self.car_perf_frame.grid(row=0, column=1, sticky='news')
         self.car_perf_frame.update()
 
         # place tire information canvas
-        self.tire_canvas = tkinter.Canvas(self.car_perf_frame, background=constants.background_color, bd=0,
-                                          highlightthickness=False)
-        self.tire_canvas.place(relx=constants.tire_canvas_relx, rely=constants.tire_canvas_rely,
-                               relwidth=constants.tire_canvas_relwidth, relheight=constants.tire_canvas_relheight,
-                               anchor=tkinter.CENTER)
+        self.tire_canvas = tkinter.Canvas(self.car_perf_frame, background=constants.background_color, bd=0, highlightthickness=False)
+        self.tire_canvas.place(relx=constants.tire_canvas_relx, rely=constants.tire_canvas_rely, relwidth=constants.tire_canvas_relwidth, relheight=constants.tire_canvas_relheight, anchor=tkinter.CENTER)
         self.tire_canvas.create_text(self.car_perf_frame.winfo_width() * constants.tire_canvas_relwidth / 2,
                                      self.car_perf_frame.winfo_height() * constants.y_padding_top * 0.5,
-                                     text="Tire Information", fill=constants.text_color, font=('Helvetica 15 bold'),
+                                     text="Tire Information",
+                                     fill=constants.text_color,
+                                     font=('Helvetica 15 bold'),
                                      anchor=tkinter.CENTER)
         for pos, info in constants.tires.items():
-            self.tires[pos] = self.round_rectangle(self.tire_canvas, self.car_perf_frame.winfo_width() * info[0],
+            self.tires[pos] = self.round_rectangle(self.tire_canvas,
+                                                   self.car_perf_frame.winfo_width() * info[0],
                                                    self.car_perf_frame.winfo_height() * info[1],
                                                    self.car_perf_frame.winfo_width() * info[2],
-                                                   self.car_perf_frame.winfo_height() * info[3], radius=info[4],
-                                                   fill=constants.background_color, width=2,
+                                                   self.car_perf_frame.winfo_height() * info[3],
+                                                   radius=info[4],
+                                                   fill=constants.background_color,
+                                                   width=2,
                                                    outline=constants.text_color)
 
         # place acceleration information text
-        tkinter.Label(self.car_perf_frame, text="Acceleration", bg=constants.background_color, fg=constants.text_color,
-                      font=('Helvetica 15 bold')).place(relx=0.15, rely=0.185, anchor=tkinter.CENTER)
-        tkinter.Label(self.car_perf_frame, textvariable=self.acceleration_var, bg=constants.background_color,
-                      fg=constants.text_color, font=('Helvetica 35 bold italic')).place(relx=0.15, rely=0.35,
-                                                                                        anchor=tkinter.CENTER)
+        tkinter.Label(self.car_perf_frame, text="Acceleration", bg=constants.background_color, fg=constants.text_color, font=('Helvetica 15 bold')).place(relx=0.15, rely=0.185, anchor=tkinter.CENTER)
+        tkinter.Label(self.car_perf_frame, textvariable=self.acceleration_var, bg=constants.background_color, fg=constants.text_color, font=('Helvetica 35 bold italic')).place(relx=0.15, rely=0.35, anchor=tkinter.CENTER)
 
         # place brake information test
-        tkinter.Label(self.car_perf_frame, text="brake", bg=constants.background_color, fg=constants.text_color,
-                      font=('Helvetica 15 bold')).place(relx=0.15, rely=0.525, anchor=tkinter.CENTER)
-        tkinter.Label(self.car_perf_frame, textvariable=self.brake_var, bg=constants.background_color,
-                      fg=constants.text_color, font=('Helvetica 35 bold italic')).place(relx=0.15, rely=0.7,
-                                                                                        anchor=tkinter.CENTER)
+        tkinter.Label(self.car_perf_frame, text="brake", bg=constants.background_color, fg=constants.text_color, font=('Helvetica 15 bold')).place(relx=0.15, rely=0.525, anchor=tkinter.CENTER)
+        tkinter.Label(self.car_perf_frame, textvariable=self.brake_var, bg=constants.background_color, fg=constants.text_color, font=('Helvetica 35 bold italic')).place(relx=0.15, rely=0.7, anchor=tkinter.CENTER)
 
     def set_shift_point_frame(self):
         """set shift point frame
         """
         # place shift point frame
-        self.shift_point_frame = tkinter.Frame(self.root, border=0, relief="groove",
-                                               background=constants.background_color,
-                                               highlightthickness=True, highlightcolor=constants.text_color)
+        self.shift_point_frame = tkinter.Frame(self.root, border=0, relief="groove", background=constants.background_color, highlightthickness=True, highlightcolor=constants.text_color)
 
         style = tkinter.ttk.Style()
         style.theme_use("clam")
 
         # set background and foreground of the treeview
-        style.configure("Treeview",
-                        background=constants.background_color,
-                        foreground=constants.text_color,
-                        fieldbackground=constants.background_color)
-        style.map('Treeview', background=[('selected', '#BFBFBF')], foreground=[('selected', 'black')],
-                  fieldbackground=[('selected', 'black')])
+        style.configure("Treeview", background=constants.background_color, foreground=constants.text_color, fieldbackground=constants.background_color)
+        style.map('Treeview', background=[('selected', '#BFBFBF')], foreground=[('selected', 'black')], fieldbackground=[('selected', 'black')])
 
         self.treeview = tkinter.ttk.Treeview(self.shift_point_frame, columns="value", style='Treeview')
         self.treeview.heading('#0', text='Shift Point', anchor=tkinter.CENTER)
@@ -335,22 +333,15 @@ class MainWindow:
         """set buttom frame
         """
         # place button frame
-        self.button_frame = tkinter.Frame(self.root, border=0, bg=constants.background_color, relief="groove",
-                                          highlightthickness=True, highlightcolor=constants.text_color)
+        self.button_frame = tkinter.Frame(self.root, border=0, bg=constants.background_color, relief="groove", highlightthickness=True, highlightcolor=constants.text_color)
 
-        button_names = [('Collect Data', self.collect_data_handler, constants.collect_data),
-                        ('Analysis', self.analysis_handler, constants.analysis),
-                        ('Run Auto Shift', self.run_handler, constants.auto_shift),
-                        ('Pause', self.pause_handler, constants.stop),
+        button_names = [('Collect Data', self.collect_data_handler, constants.collect_data), ('Analysis', self.analysis_handler, constants.analysis), ('Run Auto Shift', self.run_handler, constants.auto_shift), ('Pause', self.pause_handler, constants.stop),
                         ('Exit', self.exit_handler, constants.close)]
 
         for i, (name, func, shortcut) in enumerate(button_names):
-            button = tkinter.Button(self.button_frame, text=f'{name} ({shortcut.name})',
-                                    bg=constants.background_color, fg=constants.text_color, borderwidth=3,
-                                    highlightcolor=constants.text_color, highlightthickness=True)
+            button = tkinter.Button(self.button_frame, text=f'{name} ({shortcut.name})', bg=constants.background_color, fg=constants.text_color, borderwidth=3, highlightcolor=constants.text_color, highlightthickness=True)
             button.bind('<Button-1>', func)
-            button.place(relx=0.5, rely=1 / len(button_names) * i + 1 / len(button_names) / 2, relwidth=0.8,
-                         relheight=1 / len(button_names) * 0.9, anchor='center')
+            button.place(relx=0.5, rely=1 / len(button_names) * i + 1 / len(button_names) / 2, relwidth=0.8, relheight=1 / len(button_names) * 0.9, anchor='center')
 
         self.button_frame.grid(row=1, column=0, sticky='news')
 
@@ -358,17 +349,14 @@ class MainWindow:
         """set log frame
         """
         # place log frame
-        self.log_frame = tkinter.Frame(self.root, border=0, bg=constants.background_color, relief="groove",
-                                       highlightthickness=True, highlightcolor=constants.text_color)
+        self.log_frame = tkinter.Frame(self.root, border=0, bg=constants.background_color, relief="groove", highlightthickness=True, highlightcolor=constants.text_color)
 
-        log = scrolledtext.ScrolledText(self.log_frame, bg=constants.background_color, borderwidth=2,
-                                                font='Monaco 9 bold', fg=constants.text_color)
+        log = scrolledtext.ScrolledText(self.log_frame, bg=constants.background_color, borderwidth=2, font='Monaco 9 bold', fg=constants.text_color)
         log.pack(fill="both", expand=True)
         log_handler = TextHandler(log)
         self.logger = (Logger(log_handler))('ForzaHorizon5')
 
-        button = tkinter.Button(self.log_frame, text='Clear', bg=constants.background_color, fg=constants.text_color,
-                                borderwidth=3, highlightcolor=constants.text_color, highlightthickness=True)
+        button = tkinter.Button(self.log_frame, text='Clear', bg=constants.background_color, fg=constants.text_color, borderwidth=3, highlightcolor=constants.text_color, highlightthickness=True)
         button.bind('<Button-1>', lambda x: log.delete(1.0, 'end'))
         button.place(relx=0.93, rely=0.053, relwidth=0.05, relheight=0.05, anchor='center', bordermode='inside')
         self.log_frame.grid(row=1, column=1, sticky='news')
@@ -377,14 +365,17 @@ class MainWindow:
         """set code info frame
         """
         # place code info frame
-        self.program_info_frame = tkinter.Frame(self.root, border=0, bg=constants.background_color,
-                                                relief="groove",
-                                                highlightthickness=True, highlightcolor=constants.text_color)
-        label = tkinter.Label(self.program_info_frame, text='If you found any issues, or want to contribute to the '
-                                                            'program, feel free to visit github: '
-                                                            'https://github.com/Juice-XIJ/forza_auto_gear',
-                              bg=constants.background_color, borderwidth=2, fg=constants.text_color,
-                              relief="groove", anchor="nw", justify=tkinter.LEFT)
+        self.program_info_frame = tkinter.Frame(self.root, border=0, bg=constants.background_color, relief="groove", highlightthickness=True, highlightcolor=constants.text_color)
+        label = tkinter.Label(self.program_info_frame,
+                              text='If you found any issues, or want to contribute to the '
+                              'program, feel free to visit github: '
+                              'https://github.com/Juice-XIJ/forza_auto_gear',
+                              bg=constants.background_color,
+                              borderwidth=2,
+                              fg=constants.text_color,
+                              relief="groove",
+                              anchor="nw",
+                              justify=tkinter.LEFT)
         label.bind('<Configure>', lambda e: label.config(wraplength=int(label.winfo_width() * 0.9)))
         label.pack(fill="both", expand=True)
         self.program_info_frame.grid(row=1, column=2, sticky='news')
@@ -422,8 +413,7 @@ class MainWindow:
         """
         if len(self.forza5.records) <= 0:
             self.logger.info(f'load config {constants.example_car_ordinal}.json for analysis as an example')
-            helper.load_config(self.forza5,
-                               os.path.join(constants.root_path, 'example', f'{constants.example_car_ordinal}.json'))
+            helper.load_config(self.forza5, os.path.join(constants.root_path, 'example', f'{constants.example_car_ordinal}.json'))
         self.logger.info('Analysis')
 
         self.forza5.analyze(performance_profile=performance_profile, is_gui=is_guid)
@@ -490,26 +480,10 @@ class MainWindow:
         Returns:
             rectangle
         """
-        points = [x1 + radius, y1,
-                  x1 + radius, y1,
-                  x2 - radius, y1,
-                  x2 - radius, y1,
-                  x2, y1,
-                  x2, y1 + radius,
-                  x2, y1 + radius,
-                  x2, y2 - radius,
-                  x2, y2 - radius,
-                  x2, y2,
-                  x2 - radius, y2,
-                  x2 - radius, y2,
-                  x1 + radius, y2,
-                  x1 + radius, y2,
-                  x1, y2,
-                  x1, y2 - radius,
-                  x1, y2 - radius,
-                  x1, y1 + radius,
-                  x1, y1 + radius,
-                  x1, y1]
+        points = [
+            x1 + radius, y1, x1 + radius, y1, x2 - radius, y1, x2 - radius, y1, x2, y1, x2, y1 + radius, x2, y1 + radius, x2, y2 - radius, x2, y2 - radius, x2, y2, x2 - radius, y2, x2 - radius, y2, x1 + radius, y2, x1 + radius, y2, x1, y2, x1, y2 - radius,
+            x1, y2 - radius, x1, y1 + radius, x1, y1 + radius, x1, y1
+        ]
 
         return canvas.create_polygon(points, **kwargs, smooth=True)
 
