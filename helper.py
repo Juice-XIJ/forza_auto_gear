@@ -2,7 +2,6 @@ import json
 import os
 import socket
 import sys
-from socket import socket
 
 from car_info import CarInfo
 
@@ -28,6 +27,7 @@ def nextFdp(server_socket: socket, format: str):
         return ForzaDataPacket(message, packet_format=format)
     except BaseException:
         return None
+
 
 def plot_gear_ratio(forza: CarInfo, ax: axes.Axes = None, row: int = None, col: int = None):
     """plot gear ratio vs gear
@@ -62,6 +62,7 @@ def plot_gear_ratio(forza: CarInfo, ax: axes.Axes = None, row: int = None, col: 
     ax0.tick_params('y', colors='r')
     ax0.legend(loc=4)
 
+
 def plot_torque_rpm(forza: CarInfo, ax: axes.Axes = None, row: int = None, col: int = None):
     """plot output torque vs rpm
 
@@ -90,6 +91,7 @@ def plot_torque_rpm(forza: CarInfo, ax: axes.Axes = None, row: int = None, col: 
     ax[row, col].legend(loc=8)
     ax[row, col].set_title('Output Torque vs rpm')
     ax[row, col].grid(visible=True, color='grey', linestyle='--')
+
 
 def plot_torque_speed(forza: CarInfo, ax: axes.Axes = None, row: int = None, col: int = None):
     """plot output torque vs speed
@@ -120,6 +122,7 @@ def plot_torque_speed(forza: CarInfo, ax: axes.Axes = None, row: int = None, col
     ax[row, col].set_title('Output Torque vs Speed')
     ax[row, col].grid(visible=True, color='grey', linestyle='--')
 
+
 def plot_rpm_speed(forza: CarInfo, ax: axes.Axes = None, row: int = None, col: int = None):
     """plot rpm vs speed
 
@@ -148,6 +151,7 @@ def plot_rpm_speed(forza: CarInfo, ax: axes.Axes = None, row: int = None, col: i
     ax[row, col].set_title('rpm vs Speed')
     ax[row, col].grid(visible=True, color='grey', linestyle='--')
 
+
 def convert(n: object):
     """variables to json serializable
 
@@ -159,6 +163,7 @@ def convert(n: object):
     """
     if isinstance(n, np.int32) or isinstance(n, np.int64):
         return n.item()
+
 
 def dump_config(forza: CarInfo):
     """dump config
@@ -184,6 +189,7 @@ def dump_config(forza: CarInfo):
             json.dump(config, f, default=convert, indent=4)
     finally:
         forza.logger.debug(f'{dump_config.__name__} ended')
+
 
 def load_config(forza: CarInfo, path: str):
     """load config as carinfo
@@ -219,6 +225,7 @@ def load_config(forza: CarInfo, path: str):
             forza.records = config['records']
     finally:
         forza.logger.debug(f'{load_config.__name__} ended')
+
 
 def rgb(r, g, b):
     """generate rbg in hex

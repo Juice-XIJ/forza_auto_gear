@@ -1,4 +1,5 @@
 class CarInfo():
+
     def __init__(self):
         """initialization
         """

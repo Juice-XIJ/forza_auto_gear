@@ -1,3 +1,4 @@
+import sys
 import os
 import socket
 import time
@@ -6,6 +7,8 @@ from os import listdir
 from os.path import isfile, join
 
 import matplotlib.pyplot as plt
+
+sys.path.append(r'./forza_motorsport')
 from fdp import ForzaDataPacket
 
 import constants
@@ -17,7 +20,8 @@ from logger import Logger
 
 
 class Forza(CarInfo):
-    def __init__(self, threadPool: ThreadPoolExecutor, logger: Logger = None, packet_format='fh4', enable_clutch = False):
+
+    def __init__(self, threadPool: ThreadPoolExecutor, logger: Logger = None, packet_format='fh4', enable_clutch=False):
         """initialization
 
         Args:
@@ -89,7 +93,7 @@ class Forza(CarInfo):
                         'clutch': fdp.clutch,
                         'power': fdp.power / 1000.0,
                         'torque': fdp.torque,
-                        'car_ordinal':str(fdp.car_ordinal),
+                        'car_ordinal': str(fdp.car_ordinal),
                         'speed/rpm': fdp.speed * 3.6 / fdp.current_engine_rpm
                     }
                     self.records.append(info)
@@ -103,7 +107,7 @@ class Forza(CarInfo):
             self.isRunning = False
             self.logger.debug(f'{self.test_gear.__name__} finished')
 
-    def analyze(self, performance_profile: bool=True, is_gui: bool=False):
+    def analyze(self, performance_profile: bool = True, is_gui: bool = False):
         """analyze data
 
         Args:
@@ -171,7 +175,47 @@ class Forza(CarInfo):
         finally:
             self.logger.debug(f'{self.__try_auto_load_config.__name__} ended')
 
-    def run(self, update_tree_func=None, update_car_gui_func=None):
+    def shifting(self, iteration, fdp):
+        """shifting func
+
+        Args:
+            iteration (int): iteration
+            fdp (ForzaDataPacket): fdp
+
+        Returns:
+            [int]: iteration
+        """
+        gear = fdp.gear
+        if fdp.speed > 0.1 and gear >= self.minGear:
+            iteration = iteration + 1
+
+            # exp or sp farming to avoid afk detection
+            if self.farming and iteration % 800 == 0:
+                self.threadPool.submit(keyboard_helper.press_brake, self)
+
+            slip = (fdp.tire_slip_ratio_RL + fdp.tire_slip_ratio_RR) / 2
+            speed = fdp.speed * 3.6
+            rpm = fdp.current_engine_rpm
+            accel = fdp.accel
+            fired = False
+            if gear < self.maxGear:
+                target_rpm = self.shift_point[gear]['rpmo'] * constants.shift_factor
+                target_up_speed = int(self.shift_point[gear]['speed'] * constants.shift_factor)
+                if rpm > target_rpm and slip < 1 and accel and speed > target_up_speed:
+                    self.logger.debug(f'[{iteration}] up shift triggerred. rpm > target rmp({rpm} > {target_rpm}), speed > target up speed ({speed} > {target_up_speed}), slip {slip}, accel {accel}')
+                    gear_helper.up_shift_handle(gear, self)
+                    fired = True
+
+            if not fired and gear > self.minGear:
+                lower_gear = gear - 1 if gear - 1 <= len(self.shift_point) else len(self.shift_point) - 1
+                target_down_speed = self.shift_point[lower_gear]['speed']
+                if speed + 20 < target_down_speed and slip < 1:
+                    self.logger.debug(f'[{iteration}] down shift triggerred. speed < target down speed ({speed} > {target_down_speed}), fired {fired}')
+                    gear_helper.down_shift_handle(gear, self)
+
+        return iteration
+
+    def run(self, update_tree_func=lambda *args: None, update_car_gui_func=lambda *args: None):
         """run the auto shifting
 
         Args:
@@ -185,31 +229,26 @@ class Forza(CarInfo):
             reset_time = time.time()
             while self.isRunning:
                 fdp = helper.nextFdp(self.server_socket, self.packet_format)
-                if fdp is None:
-                    continue
 
                 # fdp is not car information
-                if fdp.car_ordinal <= 0:
+                if fdp is None or fdp.car_ordinal <= 0:
                     continue
 
-                if update_car_gui_func is not None:
-                    update_car_gui_func(fdp)
+                update_car_gui_func(fdp)
+
                 # try to load config if:
                 # 1. self.shift_point is empty
                 # or
                 # 2. fdp.car_ordinal is different from self.ordinal => means car switched
                 if len(self.shift_point) <= 0 or self.ordinal != str(fdp.car_ordinal):
                     if self.__try_auto_load_config(fdp):
-                        if update_tree_func is not None:
-                            update_tree_func()
+                        update_tree_func()
                         continue
                     else:
                         return
-                if iteration == -1:
-                    if update_tree_func is not None:
-                        update_tree_func()
 
-                gear = fdp.gear
+                if iteration == -1:
+                    update_tree_func()
 
                 # enable reset car if exp or sp farming is True
                 if self.farming and fdp.car_ordinal > 0 and fdp.speed < 20 and time.time() - reset_time > 10:
@@ -217,62 +256,14 @@ class Forza(CarInfo):
                     # reset car position
                     if reset_car == 200:
                         reset_car = 0
-                        def resetcar():
-                            self.logger.info("reset the car!!!")
-
-                            # press esc
-                            keyboard_helper.pressdown_str('esc')
-                            time.sleep(0.3)
-                            keyboard_helper.release_str('esc')
-
-                            # press x
-                            time.sleep(2)
-                            keyboard_helper.pressdown_str('x')
-                            time.sleep(0.3)
-                            keyboard_helper.release_str('x')
-
-                            # press enter
-                            keyboard_helper.pressdown_str('enter')
-                            time.sleep(0.3)
-                            keyboard_helper.release_str('enter')
-
-                        self.threadPool.submit(resetcar)
+                        self.threadPool.submit(keyboard_helper.resetcar, self)
                         reset_time = time.time()
                     continue
                 else:
                     reset_car = 0
 
-                if fdp.speed > 0.1 and gear >= self.minGear:
-                    iteration = iteration + 1
-
-                    # exp or sp farming to avoid afk detection
-                    if self.farming:
-                        if iteration % 800 == 0:
-                            def press_s():
-                                self.logger.info("Brake!!!!!")
-                                keyboard_helper.pressdown_str(constants.brake)
-                                time.sleep(0.2)
-                                keyboard_helper.release_str(constants.brake)
-                            self.threadPool.submit(press_s)
-                    slip = (fdp.tire_slip_ratio_RL + fdp.tire_slip_ratio_RR) / 2
-                    speed = fdp.speed * 3.6
-                    rpm = fdp.current_engine_rpm
-                    accel = fdp.accel
-                    fired = False
-                    if gear < self.maxGear:
-                        target_rpm = self.shift_point[gear]['rpmo'] * constants.shift_factor
-                        target_up_speed = int(self.shift_point[gear]['speed'] * constants.shift_factor)
-                        if rpm > target_rpm and slip < 1 and accel and speed > target_up_speed:
-                            self.logger.debug(f'[{iteration}] up shift triggerred. rpm > target rmp({rpm} > {target_rpm}), speed > target up speed ({speed} > {target_up_speed}), slip {slip}, accel {accel}')
-                            gear_helper.up_shift_handle(gear, self)
-                            fired = True
-
-                    if not fired and gear > self.minGear:
-                        lower_gear = gear - 1 if gear - 1 <= len(self.shift_point) else len(self.shift_point) - 1
-                        target_down_speed = self.shift_point[lower_gear]['speed']
-                        if speed + 20 < target_down_speed and slip < 1:
-                            self.logger.debug(f'[{iteration}] down shift triggerred. speed < target down speed ({speed} > {target_down_speed}), fired {fired}')
-                            gear_helper.down_shift_handle(gear, self)
+                # shifting
+                iteration = self.shifting(iteration, fdp)
         except BaseException as e:
             self.logger.exception(e)
         finally:

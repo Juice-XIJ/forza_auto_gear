@@ -6,6 +6,7 @@ import constants
 
 
 class TextHandler(logging.Handler):
+
     def __init__(self, text):
         # run the regular Handler __init__
         logging.Handler.__init__(self)
@@ -25,6 +26,7 @@ class TextHandler(logging.Handler):
 
 
 class Logger:
+
     def __init__(self, custom_handler=None):
         """initialization
         """
@@ -38,15 +40,7 @@ class Logger:
 
         custom_handler.setLevel(logging.INFO)
 
-        logging.basicConfig(
-            level=logging.DEBUG,
-            format='%(asctime)s.%(msecs)03d | \t %(levelname)s:\t %(message)s',
-            datefmt='%Y-%m-%d %H:%M:%S',
-            handlers=[
-                file_handler,
-                custom_handler
-            ]
-        )
+        logging.basicConfig(level=logging.DEBUG, format='%(asctime)s.%(msecs)03d | \t %(levelname)s:\t %(message)s', datefmt='%Y-%m-%d %H:%M:%S', handlers=[file_handler, custom_handler])
 
     def __call__(self, name: str):
         """get logger
