@@ -8,7 +8,7 @@ on: [pull_request]
 jobs:
   build:
 
-    runs-on: Windows Server 2019
+    runs-on: Windows-latest
 
     steps:
     - uses: actions/checkout@v2
