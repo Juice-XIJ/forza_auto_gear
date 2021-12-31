@@ -54,6 +54,8 @@ def get_rpm_torque_map(records: dict, forza: CarInfo):
         # find the largest stable range that torque > 0
         torque_indices = np.where(torques < 0)[0]
         length = -1
+        min_rpm_index = 0
+        max_rpm_index = len(torques ) - 1
         for i in range(len(torque_indices)):
             if torque_indices[i] == 0:
                 continue
@@ -62,6 +64,12 @@ def get_rpm_torque_map(records: dict, forza: CarInfo):
                 length = torque_indices[i]
                 min_rpm_index = 0
                 max_rpm_index = torque_indices[i] - 1
+            elif i == len(torque_indices) - 1 and torque_indices[i] < len(torques) - 1:
+                tmp_len = len(torques) - torque_indices[i] - 1
+                if tmp_len > length:
+                    length = tmp_len
+                    min_rpm_index = torque_indices[i] + 1
+                    max_rpm_index = len(torques) - 1
             else:
                 tmp_len = torque_indices[i] - torque_indices[i - 1] - 1
                 if tmp_len > length:
