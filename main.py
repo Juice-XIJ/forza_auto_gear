@@ -15,7 +15,7 @@ import helper
 # suppress matplotlib warning while running in threads
 warnings.filterwarnings("ignore", category=UserWarning)
 threadPool = ThreadPoolExecutor(max_workers=8, thread_name_prefix="exec")
-forza5 = forza.Forza(threadPool, packet_format=constants.packet_format, clutch=constants.enable_clutch)
+forza5 = forza.Forza(threadPool, packet_format=constants.packet_format, enable_clutch=constants.enable_clutch)
 
 
 def on_press(key):
