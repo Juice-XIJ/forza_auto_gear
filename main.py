@@ -71,20 +71,23 @@ def on_press(key):
     Args:
         key: key
     """
-    if key == constants.collect_data:
-        press_collect_data()
-    elif key == constants.analysis:
-        press_analysis()
-    elif key == constants.auto_shift:
-        press_auto_shift()
-    elif key == constants.stop:
-        forza5.isRunning = False
-        forza5.logger.info('stopped')
-    elif key == constants.close:
-        forza5.isRunning = False
-        threadPool.shutdown(wait=False)
-        forza5.logger.info('bye~')
-        exit()
+    try:
+        if key == constants.collect_data:
+            press_collect_data()
+        elif key == constants.analysis:
+            press_analysis()
+        elif key == constants.auto_shift:
+            press_auto_shift()
+        elif key == constants.stop:
+            forza5.isRunning = False
+            forza5.logger.info('stopped')
+        elif key == constants.close:
+            forza5.isRunning = False
+            threadPool.shutdown(wait=False)
+            forza5.logger.info('bye~')
+            exit()
+    except BaseException as e:
+        forza5.logger.exception(e)
 
 
 if __name__ == "__main__":

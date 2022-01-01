@@ -37,7 +37,7 @@ class Forza(CarInfo):
         self.server_socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
         self.server_socket.settimeout(1)
         self.server_socket.bind((constants.ip, constants.port))
-        self.logger.info('listening on port {}'.format(constants.port))
+        self.logger.info(f'listening on IP {constants.ip}, Port {constants.port}')
 
         self.packet_format = packet_format
         self.isRunning = False

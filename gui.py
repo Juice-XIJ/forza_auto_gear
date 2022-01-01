@@ -136,16 +136,19 @@ class MainWindow:
         Args:
             key: key
         """
-        if key == constants.collect_data:
-            self.collect_data_handler(None)
-        elif key == constants.analysis:
-            self.analysis_handler(None, performance_profile=False, is_guid=False)
-        elif key == constants.auto_shift:
-            self.run_handler(None)
-        elif key == constants.stop:
-            self.pause_handler(None)
-        elif key == constants.close:
-            self.exit_handler(None)
+        try:
+            if key == constants.collect_data:
+                self.collect_data_handler(None)
+            elif key == constants.analysis:
+                self.analysis_handler(None, performance_profile=False, is_guid=False)
+            elif key == constants.auto_shift:
+                self.run_handler(None)
+            elif key == constants.stop:
+                self.pause_handler(None)
+            elif key == constants.close:
+                self.exit_handler(None)
+        except BaseException as e:
+            self.forza5.logger.exception(e)
 
     def close(self):
         """close program
