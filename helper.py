@@ -257,8 +257,8 @@ def get_sys_lang():
 def create_socket(forza: CarInfo):
     forza.server_socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
     forza.server_socket.settimeout(1)
-    forza.server_socket.bind((constants.ip, constants.port))
-    forza.logger.info(f'listening on IP {constants.ip}, Port {constants.port}')
+    forza.server_socket.bind((forza.ip, forza.port))
+    forza.logger.info(f'listening on IP {forza.ip}, Port {forza.port}')
 
 
 def close_socket(forza: CarInfo):

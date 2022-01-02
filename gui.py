@@ -132,6 +132,12 @@ class MainWindow:
             self.treeview.item(self.speed_level, text=self.speed_txt.get())
             self.treeview.item(self.rpm_level, text=self.rpm_txt.get())
 
+        if hasattr(self, 'program_info'):
+            self.program_info.configure(state=tkinter.NORMAL)
+            self.program_info.delete("1.0", tkinter.END)
+            self.program_info.insert('1.0', self.program_info_txt.get())
+            self.program_info.configure(state=tkinter.DISABLED)
+
     def update_tree(self):
         """Update shift point tree
         """
@@ -238,6 +244,21 @@ class MainWindow:
         language_combobox.place(relx=0.08, rely=self.get_rely(pre_widget_count), anchor="w")
         return pre_widget_count + 1
 
+    def place_ip_port(self, pre_widget_count=0):
+        self.ip_widget = tkinter.Text(self.car_info_frame, borderwidth=0, bg=constants.background_color, fg=constants.text_color, wrap=tkinter.WORD)
+        self.ip_widget.insert("1.0", f'IP: {self.forza5.ip}')
+        self.ip_widget.place(relx=0.08, rely=self.get_rely(pre_widget_count), relwidth=0.85, relheight=0.03, anchor="w")
+        self.ip_widget.configure(state="disabled")
+        pre_widget_count = pre_widget_count + 1
+
+        self.port_widget = tkinter.Text(self.car_info_frame, borderwidth=0, bg=constants.background_color, fg=constants.text_color, wrap=tkinter.WORD)
+        self.port_widget.insert("1.0", f'Port: {self.forza5.port}')
+        self.port_widget.place(relx=0.08, rely=self.get_rely(pre_widget_count), relwidth=0.85, relheight=0.03, anchor="w")
+        self.port_widget.configure(state="disabled")
+        pre_widget_count = pre_widget_count + 1
+
+        return pre_widget_count
+
     def place_shortcuts(self, pre_widget_count=0):
         """place shortcuts comboboxes
         """
@@ -325,6 +346,9 @@ class MainWindow:
         # place car setting frame
         self.car_info_frame = tkinter.Frame(self.root, border=0, bg=constants.background_color, relief="groove", highlightthickness=True, highlightcolor=constants.text_color)
         total_widget = 0
+
+        # ==== IP/Port setting ====
+        total_widget = self.place_ip_port(total_widget)
 
         # ==== language setting ====
         total_widget = self.place_languages(total_widget)
@@ -455,9 +479,12 @@ class MainWindow:
         """
         # place code info frame
         self.program_info_frame = tkinter.Frame(self.root, border=0, bg=constants.background_color, relief="groove", highlightthickness=True, highlightcolor=constants.text_color)
-        label = tkinter.Label(self.program_info_frame, textvariable=self.program_info_txt, bg=constants.background_color, borderwidth=2, fg=constants.text_color, relief="groove", anchor="nw", justify=tkinter.LEFT)
-        label.bind('<Configure>', lambda e: label.config(wraplength=int(label.winfo_width() * 0.9)))
-        label.pack(fill="both", expand=True)
+
+        self.program_info = tkinter.Text(self.program_info_frame, borderwidth=0, bg=constants.background_color, fg=constants.text_color, wrap=tkinter.WORD)
+        self.program_info.insert("current", self.program_info_txt.get())
+        self.program_info.place(relx=0.03, rely=0.03, relwidth=0.95, relheight=0.95, anchor='nw', bordermode='inside')
+        self.program_info.configure(state="disabled")
+
         self.program_info_frame.grid(row=1, column=2, sticky='news')
 
     def collect_data_handler(self, event):
