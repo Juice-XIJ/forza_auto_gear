@@ -37,15 +37,13 @@ jobs:
         # stop the build if there are Python syntax errors or undefined names
         flake8 . --count --select=E9,F63,F7,F82 --show-source --statistics --exclude=forza_motorsport/*
         # exit-zero treats all errors as warnings. The GitHub editor is 255 chars wide
-        flake8 . --count --exit-zero --max-complexity=10 --max-line-length=255 --statistics --exclude=forza_motorsport/* --ignore=E402
+        flake8 . --count --max-complexity=10 --max-line-length=255 --statistics --exclude=forza_motorsport/* --ignore=E402
     - name: Test with pytest
       run: |
         pytest
     - name: Package
       run: |
-        echo %cd%
-        dir
-        pyinstaller --distpath ./package/dist --workpath ./package/build  .\package\gui.spec
+        .\build.bat
     - uses: actions/upload-artifact@v2
       with:
         name: Forza_Auto_Gear_GUI
