@@ -21,6 +21,7 @@ jobs:
         python -m pip install --upgrade pip
         pip install flake8 pytest
         pip install -r requirements.txt
+        pip install pyinstaller
     - name: submodule
       run: |
         git submodule init
@@ -35,9 +36,8 @@ jobs:
       run: |
         pytest
     - name: Package
-      uses: JackMcKew/pyinstaller-action-windows@main
-      with:
-        path: package
+      run: |
+        pyinstaller --distpath ./package/dist --workpath ./package/build  .\package\gui.spec
     - uses: actions/upload-artifact@v2
       with:
         name: Forza_Auto_Gear_GUI
