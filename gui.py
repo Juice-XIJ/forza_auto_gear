@@ -24,6 +24,13 @@ class MainWindow:
         """init
         """
         self.root = tkinter.Tk()
+
+        # init text
+        self.language = helper.get_sys_lang()
+
+        self.init_text()
+        self.text_update(self.language)
+
         # Configure the rows that are in use to have weight #
         self.root.grid_rowconfigure(0, minsize=500, weight=500)
         self.root.grid_rowconfigure(1, minsize=300, weight=300)
@@ -68,6 +75,62 @@ class MainWindow:
         self.logger.info('Forza Horizon 5: Auto Gear Shifting Started!!!')
         self.listener.start()
         self.root.mainloop()
+
+    def init_text(self):
+        self.select_language_txt = tkinter.StringVar()
+        self.language_txt = tkinter.StringVar()
+        self.clutch_shortcut_txt = tkinter.StringVar()
+        self.upshift_shortcut_txt = tkinter.StringVar()
+        self.downshift_shortcut_txt = tkinter.StringVar()
+        self.clutch_txt = tkinter.StringVar()
+        self.farm_txt = tkinter.StringVar()
+        self.tire_information_txt = tkinter.StringVar()
+        self.accel_txt = tkinter.StringVar()
+        self.brake_txt = tkinter.StringVar()
+        self.shift_point_txt = tkinter.StringVar()
+        self.tree_value_txt = tkinter.StringVar()
+        self.speed_txt = tkinter.StringVar()
+        self.rpm_txt = tkinter.StringVar()
+        self.collect_button_txt = tkinter.StringVar()
+        self.analysis_button_txt = tkinter.StringVar()
+        self.run_button_txt = tkinter.StringVar()
+        self.pause_button_txt = tkinter.StringVar()
+        self.exit_button_txt = tkinter.StringVar()
+        self.clear_log_text = tkinter.StringVar()
+        self.program_info_txt = tkinter.StringVar()
+
+    def text_update(self, lang_index):
+        self.select_language_txt.set(constants.select_language_txt[lang_index])
+        self.language_txt.set(constants.language_txt[lang_index])
+        self.clutch_shortcut_txt.set(constants.clutch_shortcut_txt[lang_index])
+        self.upshift_shortcut_txt.set(constants.upshift_shortcut_txt[lang_index])
+        self.downshift_shortcut_txt.set(constants.downshift_shortcut_txt[lang_index])
+        self.clutch_txt.set(constants.clutch_txt[lang_index])
+        self.farm_txt.set(constants.farm_txt[lang_index])
+        self.tire_information_txt.set(constants.tire_information_txt[lang_index])
+        self.accel_txt.set(constants.accel_txt[lang_index])
+        self.brake_txt.set(constants.brake_txt[lang_index])
+        self.shift_point_txt.set(constants.shift_point_txt[lang_index])
+        self.tree_value_txt.set(constants.tree_value_txt[lang_index])
+        self.speed_txt.set(f'{constants.speed_txt[lang_index]} km/h')
+        self.rpm_txt.set(f'{constants.rpm_txt[lang_index]} r/m')
+        self.collect_button_txt.set(f'{constants.collect_button_txt[lang_index]} ({constants.collect_data.name})')
+        self.analysis_button_txt.set(f'{constants.analysis_button_txt[lang_index]} ({constants.analysis.name})')
+        self.run_button_txt.set(f'{constants.run_button_txt[lang_index]} ({constants.auto_shift.name})')
+        self.pause_button_txt.set(f'{constants.pause_button_txt[lang_index]} ({constants.stop.name})')
+        self.exit_button_txt.set(f'{constants.exit_button_txt[lang_index]} ({constants.close.name})')
+        self.clear_log_text.set(constants.clear_log_txt[lang_index])
+        self.program_info_txt.set(constants.program_info_txt[lang_index])
+
+        # widgets to be set
+        if hasattr(self, 'tire_canvas'):
+            self.tire_canvas.itemconfigure(self.tire_canvas_text, text=self.tire_information_txt.get())
+
+        if hasattr(self, 'treeview'):
+            self.treeview.heading('#0', text=self.shift_point_txt.get(), anchor=tkinter.CENTER)
+            self.treeview.heading('value', text=self.tree_value_txt.get(), anchor=tkinter.CENTER)
+            self.treeview.item(self.speed_level, text=self.speed_txt.get())
+            self.treeview.item(self.rpm_level, text=self.rpm_txt.get())
 
     def update_tree(self):
         """Update shift point tree
@@ -156,7 +219,26 @@ class MainWindow:
         shutdown(self.forza5, self.threadPool, self.listener)
         self.root.destroy()
 
-    def place_shortcuts(self):
+    def place_languages(self, pre_widget_count=0):
+        # ==== language setting ====
+        # language label
+        language_label = tkinter.Label(self.car_info_frame, textvariable=self.select_language_txt, bg=constants.background_color, fg=constants.text_color)
+        language_label.place(relx=0.06, rely=self.get_rely(pre_widget_count), anchor="w")
+        pre_widget_count = pre_widget_count + 1
+
+        # language options
+        language_combobox = tkinter.ttk.Combobox(self.car_info_frame, values=constants.language_txt, state='readonly')
+        language_combobox.current(self.language)
+
+        def set_language(event):
+            self.language = constants.language_txt.index(event.widget.get())
+            self.text_update(self.language)
+
+        language_combobox.bind("<<ComboboxSelected>>", set_language)
+        language_combobox.place(relx=0.08, rely=self.get_rely(pre_widget_count), anchor="w")
+        return pre_widget_count + 1
+
+    def place_shortcuts(self, pre_widget_count=0):
         """place shortcuts comboboxes
         """
 
@@ -169,7 +251,7 @@ class MainWindow:
         # ==== short-cut options ====
         # == define clutch shortcuts ==
         # clutch shortcut label
-        clutch_shortcut_label = tkinter.Label(self.car_info_frame, text="Clutch Shortcut:", bg=constants.background_color, fg=constants.text_color)
+        clutch_shortcut_label = tkinter.Label(self.car_info_frame, textvariable=self.clutch_shortcut_txt, bg=constants.background_color, fg=constants.text_color)
         shortcut_list.append(tuple((clutch_shortcut_label, "")))
 
         # clutch options
@@ -180,7 +262,7 @@ class MainWindow:
 
         # == upshift shortcut ==
         # upshift short label
-        upshift_shortcut_label = tkinter.Label(self.car_info_frame, text="Upshift Shortcut:", bg=constants.background_color, fg=constants.text_color)
+        upshift_shortcut_label = tkinter.Label(self.car_info_frame, textvariable=self.upshift_shortcut_txt, bg=constants.background_color, fg=constants.text_color)
         shortcut_list.append(tuple((upshift_shortcut_label, "")))
 
         # upshift options
@@ -191,7 +273,7 @@ class MainWindow:
 
         # == downshift shortcut ==
         # downshift short label
-        downshift_shortcut_label = tkinter.Label(self.car_info_frame, text="Downshift Shortcut:", bg=constants.background_color, fg=constants.text_color)
+        downshift_shortcut_label = tkinter.Label(self.car_info_frame, textvariable=self.downshift_shortcut_txt, bg=constants.background_color, fg=constants.text_color)
         shortcut_list.append(tuple((downshift_shortcut_label, "")))
 
         # downshift options
@@ -203,7 +285,7 @@ class MainWindow:
         all_combobox = [box[0] for box in shortcut_list if type(box[0]) is tkinter.ttk.Combobox]
         for i in range(len(shortcut_list)):
             if type(shortcut_list[i][0]) is tkinter.Label:
-                shortcut_list[i][0].place(relx=0.06, rely=self.get_rely(i), anchor="w")
+                shortcut_list[i][0].place(relx=0.06, rely=self.get_rely(i + pre_widget_count), anchor="w")
             elif type(shortcut_list[i][0]) is tkinter.ttk.Combobox:
 
                 def set_clutch_shortcut(event):
@@ -222,9 +304,9 @@ class MainWindow:
                         box['values'] = get_available_shortcuts(box.get())
 
                 shortcut_list[i][0].bind("<<ComboboxSelected>>", set_clutch_shortcut)
-                shortcut_list[i][0].place(relx=0.08, rely=self.get_rely(i), anchor="w")
+                shortcut_list[i][0].place(relx=0.08, rely=self.get_rely(i + pre_widget_count), anchor="w")
 
-        return len(shortcut_list)
+        return len(shortcut_list) + pre_widget_count
 
     def get_rely(self, count):
         """get relative y
@@ -242,20 +324,24 @@ class MainWindow:
         """
         # place car setting frame
         self.car_info_frame = tkinter.Frame(self.root, border=0, bg=constants.background_color, relief="groove", highlightthickness=True, highlightcolor=constants.text_color)
+        total_widget = 0
+
+        # ==== language setting ====
+        total_widget = self.place_languages(total_widget)
+
         # ==== place shortcuts ====
-        shortcut_count = self.place_shortcuts()
+        total_widget = self.place_shortcuts(total_widget)
 
         # ==== features settings ====
-        features_pos = shortcut_count
         # clutch setting
         enable_clutch = tkinter.IntVar(value=self.forza5.enable_clutch)
 
         def set_clutch():
             self.forza5.enable_clutch = enable_clutch.get()
 
-        clutch_check = tkinter.Checkbutton(self.car_info_frame, text='Clutch', onvalue=1, offvalue=0, variable=enable_clutch, bg=constants.background_color, command=set_clutch, fg=constants.text_color)
-        clutch_check.place(relx=0.05, rely=self.get_rely(features_pos), anchor="w")
-        features_pos = features_pos + 1
+        clutch_check = tkinter.Checkbutton(self.car_info_frame, textvariable=self.clutch_txt, onvalue=1, offvalue=0, variable=enable_clutch, bg=constants.background_color, command=set_clutch, fg=constants.text_color)
+        clutch_check.place(relx=0.05, rely=self.get_rely(total_widget), anchor="w")
+        total_widget = total_widget + 1
 
         # farming setting
         enable_farm = tkinter.IntVar(value=self.forza5.farming)
@@ -263,9 +349,9 @@ class MainWindow:
         def set_farm():
             self.forza5.farming = enable_farm.get()
 
-        farm_check = tkinter.Checkbutton(self.car_info_frame, text='Farm', onvalue=1, offvalue=0, variable=enable_farm, bg=constants.background_color, command=set_farm, fg=constants.text_color)
-        farm_check.place(relx=0.05, rely=self.get_rely(features_pos), anchor="w")
-        features_pos = features_pos + 1
+        farm_check = tkinter.Checkbutton(self.car_info_frame, textvariable=self.farm_txt, onvalue=1, offvalue=0, variable=enable_farm, bg=constants.background_color, command=set_farm, fg=constants.text_color)
+        farm_check.place(relx=0.05, rely=self.get_rely(total_widget), anchor="w")
+        total_widget = total_widget + 1
         self.car_info_frame.grid(row=0, column=0, sticky='news')
 
     def set_car_perf_frame(self):
@@ -279,12 +365,12 @@ class MainWindow:
         # place tire information canvas
         self.tire_canvas = tkinter.Canvas(self.car_perf_frame, background=constants.background_color, bd=0, highlightthickness=False)
         self.tire_canvas.place(relx=constants.tire_canvas_relx, rely=constants.tire_canvas_rely, relwidth=constants.tire_canvas_relwidth, relheight=constants.tire_canvas_relheight, anchor=tkinter.CENTER)
-        self.tire_canvas.create_text(self.car_perf_frame.winfo_width() * constants.tire_canvas_relwidth / 2,
-                                     self.car_perf_frame.winfo_height() * constants.y_padding_top * 0.5,
-                                     text="Tire Information",
-                                     fill=constants.text_color,
-                                     font=('Helvetica 15 bold'),
-                                     anchor=tkinter.CENTER)
+        self.tire_canvas_text = self.tire_canvas.create_text(self.car_perf_frame.winfo_width() * constants.tire_canvas_relwidth / 2,
+                                                             self.car_perf_frame.winfo_height() * constants.y_padding_top * 0.5,
+                                                             text=self.tire_information_txt.get(),
+                                                             fill=constants.text_color,
+                                                             font=('Helvetica 15 bold'),
+                                                             anchor=tkinter.CENTER)
         for pos, info in constants.tires.items():
             self.tires[pos] = self.round_rectangle(self.tire_canvas,
                                                    self.car_perf_frame.winfo_width() * info[0],
@@ -297,11 +383,11 @@ class MainWindow:
                                                    outline=constants.text_color)
 
         # place acceleration information text
-        tkinter.Label(self.car_perf_frame, text="Acceleration", bg=constants.background_color, fg=constants.text_color, font=('Helvetica 15 bold')).place(relx=0.15, rely=0.185, anchor=tkinter.CENTER)
+        tkinter.Label(self.car_perf_frame, textvariable=self.accel_txt, bg=constants.background_color, fg=constants.text_color, font=('Helvetica 15 bold')).place(relx=0.15, rely=0.185, anchor=tkinter.CENTER)
         tkinter.Label(self.car_perf_frame, textvariable=self.acceleration_var, bg=constants.background_color, fg=constants.text_color, font=('Helvetica 35 bold italic')).place(relx=0.15, rely=0.35, anchor=tkinter.CENTER)
 
         # place brake information test
-        tkinter.Label(self.car_perf_frame, text="brake", bg=constants.background_color, fg=constants.text_color, font=('Helvetica 15 bold')).place(relx=0.15, rely=0.525, anchor=tkinter.CENTER)
+        tkinter.Label(self.car_perf_frame, textvariable=self.brake_txt, bg=constants.background_color, fg=constants.text_color, font=('Helvetica 15 bold')).place(relx=0.15, rely=0.525, anchor=tkinter.CENTER)
         tkinter.Label(self.car_perf_frame, textvariable=self.brake_var, bg=constants.background_color, fg=constants.text_color, font=('Helvetica 35 bold italic')).place(relx=0.15, rely=0.7, anchor=tkinter.CENTER)
 
     def set_shift_point_frame(self):
@@ -318,12 +404,12 @@ class MainWindow:
         style.map('Treeview', background=[('selected', '#BFBFBF')], foreground=[('selected', 'black')], fieldbackground=[('selected', 'black')])
 
         self.treeview = tkinter.ttk.Treeview(self.shift_point_frame, columns="value", style='Treeview')
-        self.treeview.heading('#0', text='Shift Point', anchor=tkinter.CENTER)
-        self.treeview.heading('value', text='Value', anchor=tkinter.CENTER)
+        self.treeview.heading('#0', text=self.shift_point_txt.get(), anchor=tkinter.CENTER)
+        self.treeview.heading('value', text=self.tree_value_txt.get(), anchor=tkinter.CENTER)
         self.treeview.column('#0', width=80, anchor=tkinter.CENTER)
         self.treeview.column('value', width=120, anchor=tkinter.CENTER)
-        self.speed_level = self.treeview.insert(parent='', index=tkinter.END, text='Speed (km/h)', open=True)
-        self.rpm_level = self.treeview.insert(parent='', index=tkinter.END, text='RPM (r/m)', open=True)
+        self.speed_level = self.treeview.insert(parent='', index=tkinter.END, text=self.speed_txt.get(), open=True)
+        self.rpm_level = self.treeview.insert(parent='', index=tkinter.END, text=self.rpm_txt.get(), open=True)
 
         for i in range(1, 11):
             self.speed_tree[i] = self.treeview.insert(self.speed_level, tkinter.END, text=i, values="-")
@@ -338,11 +424,11 @@ class MainWindow:
         # place button frame
         self.button_frame = tkinter.Frame(self.root, border=0, bg=constants.background_color, relief="groove", highlightthickness=True, highlightcolor=constants.text_color)
 
-        button_names = [('Collect Data', self.collect_data_handler, constants.collect_data), ('Analysis', self.analysis_handler, constants.analysis), ('Run Auto Shift', self.run_handler, constants.auto_shift),
-                        ('Pause', self.pause_handler, constants.stop), ('Exit', self.exit_handler, constants.close)]
+        button_names = [(self.collect_button_txt, self.collect_data_handler), (self.analysis_button_txt, self.analysis_handler), (self.run_button_txt, self.run_handler), (self.pause_button_txt, self.pause_handler),
+                        (self.exit_button_txt, self.exit_handler)]
 
-        for i, (name, func, shortcut) in enumerate(button_names):
-            button = tkinter.Button(self.button_frame, text=f'{name} ({shortcut.name})', bg=constants.background_color, fg=constants.text_color, borderwidth=3, highlightcolor=constants.text_color, highlightthickness=True)
+        for i, (name, func) in enumerate(button_names):
+            button = tkinter.Button(self.button_frame, textvariable=name, bg=constants.background_color, fg=constants.text_color, borderwidth=3, highlightcolor=constants.text_color, highlightthickness=True)
             button.bind('<Button-1>', func)
             button.place(relx=0.5, rely=1 / len(button_names) * i + 1 / len(button_names) / 2, relwidth=0.8, relheight=1 / len(button_names) * 0.9, anchor='center')
 
@@ -359,9 +445,9 @@ class MainWindow:
         log_handler = TextHandler(log)
         self.logger = (Logger(log_handler))('ForzaHorizon5')
 
-        button = tkinter.Button(self.log_frame, text='Clear', bg=constants.background_color, fg=constants.text_color, borderwidth=3, highlightcolor=constants.text_color, highlightthickness=True)
+        button = tkinter.Button(self.log_frame, textvariable=self.clear_log_text, bg=constants.background_color, fg=constants.text_color, borderwidth=3, highlightcolor=constants.text_color, highlightthickness=True)
         button.bind('<Button-1>', lambda x: log.delete(1.0, 'end'))
-        button.place(relx=0.93, rely=0.053, relwidth=0.05, relheight=0.05, anchor='center', bordermode='inside')
+        button.place(relx=0.93, rely=0.053, relwidth=0.05, relheight=0.07, anchor='center', bordermode='inside')
         self.log_frame.grid(row=1, column=1, sticky='news')
 
     def set_program_info_frame(self):
@@ -369,16 +455,7 @@ class MainWindow:
         """
         # place code info frame
         self.program_info_frame = tkinter.Frame(self.root, border=0, bg=constants.background_color, relief="groove", highlightthickness=True, highlightcolor=constants.text_color)
-        label = tkinter.Label(self.program_info_frame,
-                              text='If you found any issues, or want to contribute to the '
-                              'program, feel free to visit github: '
-                              'https://github.com/Juice-XIJ/forza_auto_gear',
-                              bg=constants.background_color,
-                              borderwidth=2,
-                              fg=constants.text_color,
-                              relief="groove",
-                              anchor="nw",
-                              justify=tkinter.LEFT)
+        label = tkinter.Label(self.program_info_frame, textvariable=self.program_info_txt, bg=constants.background_color, borderwidth=2, fg=constants.text_color, relief="groove", anchor="nw", justify=tkinter.LEFT)
         label.bind('<Configure>', lambda e: label.config(wraplength=int(label.winfo_width() * 0.9)))
         label.pack(fill="both", expand=True)
         self.program_info_frame.grid(row=1, column=2, sticky='news')

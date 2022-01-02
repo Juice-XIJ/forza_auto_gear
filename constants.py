@@ -69,3 +69,32 @@ shift_factor = 0.99
 
 # === Test Settings ===
 test_car_ordinal = 'analysis_test'
+
+# === Text Settings ===
+select_language_txt = ['Select Language:', '选择语言:']
+language_txt = ['English', '中文']
+default_language = 0
+
+clutch_shortcut_txt = ['Clutch Shortcut:', '离合快捷键:']
+upshift_shortcut_txt = ['Upshift Shortcut:', '升档快捷键:']
+downshift_shortcut_txt = ['Downshift Shortcut:', '降档快捷键:']
+clutch_txt = ['Enable Clutch', '开启离合']
+farm_txt = ['Enable Farm', '开启刷图']
+tire_information_txt = ['Tire Information', '轮胎信息']
+accel_txt = ['Acceleration', '加速']
+brake_txt = ['Brake', '刹车']
+shift_point_txt = ['Shift Point', '换挡点']
+tree_value_txt = ['Value', '结果']
+speed_txt = ['Speed', '速度']
+rpm_txt = ['RPM', '转速']
+collect_button_txt = ['Collect Data', '收集数据']
+analysis_button_txt = ['Analysis', '分析数据']
+run_button_txt = ['Run Auto Shift', '运行自动换挡']
+pause_button_txt = ['Pause', '暂停']
+exit_button_txt = ['Exit', '退出']
+clear_log_txt = ['Clear', '清空']
+
+program_info_txt = [
+    'If you found any issues, or want to contribute to the program, feel free to visit github: https://github.com/Juice-XIJ/forza_auto_gear',
+    '如果您发现任何bugs，或想参加这个project，欢迎访问我的github: https://github.com/Juice-XIJ/forza_auto_gear'
+]
