@@ -30,6 +30,10 @@ class Forza(CarInfo):
         """
         super().__init__()
 
+        # === socket ===
+        self.ip = constants.ip
+        self.port = constants.port
+
         # === logger ===
         self.logger = (Logger()('Forza5')) if logger is None else logger
 
