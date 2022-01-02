@@ -3,7 +3,13 @@
 
 name: Python application
 
-on: [pull_request]
+on:
+  pull_request:
+    branches:
+      - '**'
+  push:
+    branch:
+      - main
 
 jobs:
   build:
@@ -42,3 +48,4 @@ jobs:
       with:
         name: Forza_Auto_Gear_GUI
         path: package/dist/gui
+        retention-days: 14
