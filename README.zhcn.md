@@ -46,7 +46,7 @@ Install >= Python 3.8
 Then the result will be saved at `./config/{car ordinal}.json`
 4. F7 开始自动升降档！再按一次则可以停止.
     - GUI:
-    ![f7 gui test](./img/f7_gui_test.png)
+    ![f7 gui test](./img/f7_gui_test_zh_cn.png)
 
     - Command Line:
     ![f7 test](./img/f7_test.png)
