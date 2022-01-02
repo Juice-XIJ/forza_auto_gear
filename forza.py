@@ -1,6 +1,5 @@
 import sys
 import os
-import socket
 import time
 from concurrent.futures.thread import ThreadPoolExecutor
 from os import listdir
@@ -33,11 +32,6 @@ class Forza(CarInfo):
 
         # === logger ===
         self.logger = (Logger()('Forza5')) if logger is None else logger
-
-        self.server_socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-        self.server_socket.settimeout(1)
-        self.server_socket.bind((constants.ip, constants.port))
-        self.logger.info(f'listening on IP {constants.ip}, Port {constants.port}')
 
         self.packet_format = packet_format
         self.isRunning = False
@@ -75,6 +69,7 @@ class Forza(CarInfo):
         """
         try:
             self.logger.debug(f'{self.test_gear.__name__} started')
+            helper.create_socket(self)
             self.records = []
             while self.isRunning:
                 fdp = helper.nextFdp(self.server_socket, self.packet_format)
@@ -105,6 +100,7 @@ class Forza(CarInfo):
             self.logger.exception(e)
         finally:
             self.isRunning = False
+            helper.close_socket(self)
             self.logger.debug(f'{self.test_gear.__name__} finished')
 
     def analyze(self, performance_profile: bool = True, is_gui: bool = False):
@@ -224,6 +220,7 @@ class Forza(CarInfo):
         """
         try:
             self.logger.debug(f'{self.run.__name__} started')
+            helper.create_socket(self)
             iteration = -1
             reset_car = 0
             reset_time = time.time()
@@ -268,4 +265,5 @@ class Forza(CarInfo):
             self.logger.exception(e)
         finally:
             self.isRunning = False
+            helper.close_socket(self)
             self.logger.debug(f'{self.run.__name__} finished')

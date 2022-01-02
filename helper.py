@@ -1,4 +1,5 @@
 import json
+import locale
 import os
 import socket
 import sys
@@ -10,6 +11,8 @@ import numpy as np
 from fdp import ForzaDataPacket
 from matplotlib import axes
 from matplotlib.pyplot import cm
+
+import constants
 
 
 def nextFdp(server_socket: socket, format: str):
@@ -241,3 +244,23 @@ def rgb(r, g, b):
         rgb in hex
     """
     return "#%s%s%s" % tuple([hex(int(c * 255))[2:].rjust(2, "0") for c in (r, g, b)])
+
+
+def get_sys_lang():
+    try:
+        lang = locale.getdefaultlocale()[0]
+        return 1 if 'zh' in lang else 0
+    except Exception:
+        return constants.default_language
+
+
+def create_socket(forza: CarInfo):
+    forza.server_socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+    forza.server_socket.settimeout(1)
+    forza.server_socket.bind((constants.ip, constants.port))
+    forza.logger.info(f'listening on IP {constants.ip}, Port {constants.port}')
+
+
+def close_socket(forza: CarInfo):
+    forza.server_socket.close()
+    forza.logger.info('socket closed')

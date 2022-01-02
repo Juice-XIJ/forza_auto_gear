@@ -178,15 +178,18 @@ def calculate_optimal_shift_point(forza: CarInfo):
             break
 
         rpm_torque = forza.rpm_torque_map[gear]
-        rpm_to_torque = records_by_gears[gear]
-        rpm_to_torque1 = records_by_gears[gear + 1]
+        rpm_torque1 = forza.rpm_torque_map[gear + 1]
+        rpm_to_torque = records_by_gears[gear][rpm_torque['min_rpm_index']:rpm_torque['max_rpm_index']]
+        rpm_to_torque1 = records_by_gears[gear + 1][rpm_torque1['min_rpm_index']:rpm_torque1['max_rpm_index']]
 
         min_dt_torque = 99999
         rpmo = -1
         ratio = tuple['ratio']
+
         # search optimal rpm. Starting from max rpm.
-        max_rpm = int(rpm_to_torque[rpm_torque['max_rpm_index']]['rpm'])
-        min_rpm = int(rpm_to_torque[rpm_torque['min_rpm_index']]['rpm'])
+        rpms = np.array([item['rpm'] for item in rpm_to_torque])
+        max_rpm = int(np.max(rpms))
+        min_rpm = int(np.min(rpms))
         for r in range(max_rpm, min_rpm, -50):
             # delta(r, G) = getTorque(r) * gR(G) - getTorque(r * gR(G + 1) / gR(G)) * gR(G + 1)
             ratio1 = get_gear_ratio(gear + 1, forza.gear_ratios)
@@ -195,8 +198,11 @@ def calculate_optimal_shift_point(forza: CarInfo):
                 rpmo = r
                 min_dt_torque = delta
 
-        forza.logger.info(f'Optimal shift point from {gear} to {gear + 1} is at rpm ({min_rpm} ~ {max_rpm}) = {rpmo} r/m, speed = {rpmo * ratio} km/h, delta output torque = {min_dt_torque}')
-        res[gear] = {'rpmo': rpmo, 'speed': rpmo * ratio}
+        speedo = rpm_to_torque[np.abs(rpms - rpmo).argmin()]['speed']
+        forza.logger.info(f'Optimal shift point from {gear} to {gear + 1} is at rpm ({min_rpm} ~ {max_rpm}) = {rpmo} r/m, speed = {speedo} vs {rpmo * ratio} km/h, delta output torque = {min_dt_torque}')
+        if max(speedo, rpmo * ratio) * 0.9 > min(speedo, rpmo * ratio):
+            forza.logger.info(f'Gear ratio {ratio} at gear {gear} maybe wrong since the speed gap between real and theory is larger than 10%. Please re-collect data for this car')
+        res[gear] = {'rpmo': rpmo, 'speed': min(speedo, rpmo * ratio)}
 
     return res
 
