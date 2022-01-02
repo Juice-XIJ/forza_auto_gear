@@ -21,17 +21,21 @@ A800，GTR93，飞机场直线加速
 ## 环境需求
 Install >= Python 3.8
 
+## 游戏设置
+如下图，打开数据输出，并设置地址和端口:
+![data_output_settings](./img/output_settings.png)
+
 ## 安装
-```
-pip3 install -r requirements.txt
-git submodule init
-git submodule update --recursive
-```
+1. 如果你想下载源代码运行：
+    ```
+    pip3 install -r requirements.txt
+    git submodule init
+    git submodule update --recursive
+    ```
+2. 你也可以直接在[release](https://github.com/Juice-XIJ/forza_auto_gear/releases)里下载打包好的程序`Forza_Auto_Gear_GUI`，并运行 `Forza_Auto_Gear_GUI.exe`.
 
 ## 使用方式
-0. 如下图，打开数据输出，并设置地址和端口:
-![data_output_settings](./img/output_settings.png)
-1. 如果想要使用图形界面，可以运行 `python ./gui.py`. 如果更喜欢命令行模式，可以运行 `python ./main.py`
+1. 如果下载的是打包好的程序，则直接运行图形界面。如果下载的是源代码，可以运行 `python ./gui.py`来使用图形界面. 如果更喜欢命令行模式，可以运行 `python ./main.py`
 2. F10 启动当前车辆数据收集:
     - 找一个直线竞速的起点，或者告诉直线。这样方便长距离加速。
     - 从1档开始，逐渐加速（满油门但不要打滑）直到断油（转速开始疯狂抖动），然后手动升到下一档。依次往复直到最大档，或你只使用的最大档。
