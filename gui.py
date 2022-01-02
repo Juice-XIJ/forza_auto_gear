@@ -136,16 +136,19 @@ class MainWindow:
         Args:
             key: key
         """
-        if key == constants.collect_data:
-            self.collect_data_handler(None)
-        elif key == constants.analysis:
-            self.analysis_handler(None, performance_profile=False, is_guid=False)
-        elif key == constants.auto_shift:
-            self.run_handler(None)
-        elif key == constants.stop:
-            self.pause_handler(None)
-        elif key == constants.close:
-            self.exit_handler(None)
+        try:
+            if key == constants.collect_data:
+                self.collect_data_handler(None)
+            elif key == constants.analysis:
+                self.analysis_handler(None, performance_profile=False, is_guid=False)
+            elif key == constants.auto_shift:
+                self.run_handler(None)
+            elif key == constants.stop:
+                self.pause_handler(None)
+            elif key == constants.close:
+                self.exit_handler(None)
+        except BaseException as e:
+            self.forza5.logger.exception(e)
 
     def close(self):
         """close program
@@ -335,8 +338,8 @@ class MainWindow:
         # place button frame
         self.button_frame = tkinter.Frame(self.root, border=0, bg=constants.background_color, relief="groove", highlightthickness=True, highlightcolor=constants.text_color)
 
-        button_names = [('Collect Data', self.collect_data_handler, constants.collect_data), ('Analysis', self.analysis_handler, constants.analysis), ('Run Auto Shift', self.run_handler, constants.auto_shift), ('Pause', self.pause_handler, constants.stop),
-                        ('Exit', self.exit_handler, constants.close)]
+        button_names = [('Collect Data', self.collect_data_handler, constants.collect_data), ('Analysis', self.analysis_handler, constants.analysis), ('Run Auto Shift', self.run_handler, constants.auto_shift),
+                        ('Pause', self.pause_handler, constants.stop), ('Exit', self.exit_handler, constants.close)]
 
         for i, (name, func, shortcut) in enumerate(button_names):
             button = tkinter.Button(self.button_frame, text=f'{name} ({shortcut.name})', bg=constants.background_color, fg=constants.text_color, borderwidth=3, highlightcolor=constants.text_color, highlightthickness=True)
@@ -481,8 +484,8 @@ class MainWindow:
             rectangle
         """
         points = [
-            x1 + radius, y1, x1 + radius, y1, x2 - radius, y1, x2 - radius, y1, x2, y1, x2, y1 + radius, x2, y1 + radius, x2, y2 - radius, x2, y2 - radius, x2, y2, x2 - radius, y2, x2 - radius, y2, x1 + radius, y2, x1 + radius, y2, x1, y2, x1, y2 - radius,
-            x1, y2 - radius, x1, y1 + radius, x1, y1 + radius, x1, y1
+            x1 + radius, y1, x1 + radius, y1, x2 - radius, y1, x2 - radius, y1, x2, y1, x2, y1 + radius, x2, y1 + radius, x2, y2 - radius, x2, y2 - radius, x2, y2, x2 - radius, y2, x2 - radius, y2, x1 + radius, y2, x1 + radius, y2, x1, y2, x1,
+            y2 - radius, x1, y2 - radius, x1, y1 + radius, x1, y1 + radius, x1, y1
         ]
 
         return canvas.create_polygon(points, **kwargs, smooth=True)

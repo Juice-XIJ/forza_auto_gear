@@ -66,3 +66,6 @@ blipThrottleDuration = 0.1  # blip the throttle duration. Should be short since 
 
 # === Gear Shift Settings ===
 shift_factor = 0.99
+
+# === Test Settings ===
+test_car_ordinal = 'analysis_test'

@@ -223,6 +223,8 @@ def load_config(forza: CarInfo, path: str):
 
         if 'records' in config:
             forza.records = config['records']
+    except BaseException as e:
+        forza.logger.exception(e)
     finally:
         forza.logger.debug(f'{load_config.__name__} ended')
 

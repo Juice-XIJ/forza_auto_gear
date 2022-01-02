@@ -21,17 +21,21 @@ A800, GTR93, Aerodromo Drag Strip
 ## Prerequisites
 Install >= Python 3.8
 
+## Game Setup
+Setup the data out:
+![data_output_settings](./img/output_settings.png)
+
 ## Installation
-```
-pip3 install -r requirements.txt
-git submodule init
-git submodule update --recursive
-```
+1. You could download and run the source code directly
+    ```
+    pip3 install -r requirements.txt
+    git submodule init
+    git submodule update --recursive
+    ```
+2. You could download the `Forza_Auto_Gear_GUI` from the [release](https://github.com/Juice-XIJ/forza_auto_gear/releases) to run the `Forza_Auto_Gear_GUI.exe` directly.
 
 ## Usage
-0. Setup the data out:
-![data_output_settings](./img/output_settings.png)
-1. If you want to use GUI, please run: `python ./gui.py`. If preferred command line, please run `python ./main.py`
+1. If you download the `Forza_Auto_Gear_GUI.exe` directly, the GUI is running. If you download the source code, please run: `python ./gui.py` to use GUI. If preferred command line, please run `python ./main.py`.
 2. F10 starts the data collection:
     - Find a drag strip location.
     - Starting from Gear 1, accelerate until fuel cut-off (rpm is vibrating), then up shifting gear. Repeat until reaching the maximum gear.

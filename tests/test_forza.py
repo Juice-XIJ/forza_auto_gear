@@ -14,7 +14,7 @@ forza5 = forza.Forza(threadPool, packet_format=constants.packet_format, enable_c
 
 
 def test_analysis():
-    helper.load_config(forza5, os.path.join(constants.root_path, 'example', f'{constants.example_car_ordinal}.json'))
+    helper.load_config(forza5, os.path.join(constants.root_path, 'tests', f'{constants.test_car_ordinal}.json'))
     forza5.analyze(performance_profile=False, is_gui=False)
 
     # gear 1 => ( ] => torque is larger than 0 at the beginning, but has negative values at the end

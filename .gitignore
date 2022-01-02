@@ -6,3 +6,5 @@ log/**
 backup/**
 .idea/**
 tests/__pycache__/**
+package/build/**
+package/dist/**
