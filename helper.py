@@ -91,7 +91,7 @@ def plot_torque_rpm(forza: CarInfo, ax: axes.Axes = None, row: int = None, col: 
         ax[row, col].set_ylabel('Torque (N/m)')
         ax[row, col].tick_params('y')
 
-    ax[row, col].legend(loc='upper left')
+    ax[row, col].legend(loc='lower left')
     ax[row, col].set_title('Output Torque vs rpm')
     ax[row, col].grid(visible=True, color='grey', linestyle='--')
 
@@ -121,7 +121,7 @@ def plot_torque_speed(forza: CarInfo, ax: axes.Axes = None, row: int = None, col
         ax[row, col].set_ylabel('Torque (N/m)')
         ax[row, col].tick_params('y')
 
-    ax[row, col].legend(loc='lower right')
+    ax[row, col].legend(loc='upper right')
     ax[row, col].set_title('Output Torque vs Speed')
     ax[row, col].grid(visible=True, color='grey', linestyle='--')
 
