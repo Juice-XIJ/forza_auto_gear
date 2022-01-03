@@ -86,12 +86,12 @@ def plot_torque_rpm(forza: CarInfo, ax: axes.Axes = None, row: int = None, col: 
         torque = np.array([item[1] for item in data])
         ratio = forza.gear_ratios[g]['ratio']
 
-        ax[row, col].plot(rpms, torque * ratio, label=f'Gear {g} torque', color=c)
+        ax[row, col].plot(rpms, torque / ratio, label=f'Gear {g} torque', color=c)
         ax[row, col].set_xlabel('rpm (r/m)')
         ax[row, col].set_ylabel('Torque (N/m)')
         ax[row, col].tick_params('y')
 
-    ax[row, col].legend(loc=8)
+    ax[row, col].legend(loc='upper left')
     ax[row, col].set_title('Output Torque vs rpm')
     ax[row, col].grid(visible=True, color='grey', linestyle='--')
 
@@ -116,12 +116,12 @@ def plot_torque_speed(forza: CarInfo, ax: axes.Axes = None, row: int = None, col
         torque = np.array([item[1] for item in data])
         ratio = forza.gear_ratios[g]['ratio']
 
-        ax[row, col].plot(speeds, torque * ratio, label=f'Gear {g} torque', color=c)
+        ax[row, col].plot(speeds, torque / ratio, label=f'Gear {g} torque', color=c)
         ax[row, col].set_xlabel('speed (km/h)')
         ax[row, col].set_ylabel('Torque (N/m)')
         ax[row, col].tick_params('y')
 
-    ax[row, col].legend(loc='upper right')
+    ax[row, col].legend(loc='lower right')
     ax[row, col].set_title('Output Torque vs Speed')
     ax[row, col].grid(visible=True, color='grey', linestyle='--')
 
@@ -150,7 +150,7 @@ def plot_rpm_speed(forza: CarInfo, ax: axes.Axes = None, row: int = None, col: i
         ax[row, col].set_ylabel('rpm (r/m)')
         ax[row, col].tick_params('y')
 
-    ax[row, col].legend(loc='upper right')
+    ax[row, col].legend(loc='lower right')
     ax[row, col].set_title('rpm vs Speed')
     ax[row, col].grid(visible=True, color='grey', linestyle='--')
 

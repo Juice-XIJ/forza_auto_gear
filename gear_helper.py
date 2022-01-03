@@ -9,17 +9,18 @@ from car_info import CarInfo
 # === Optimal Shift Point ===
 # speed = rpm * 60 * (dia of tire * PI ) / gear ratio / other ratio
 # dia of tire, other ratio and PI are constants, said C. So we have:
-# speed = C * rpm * gR (gear ratio)
+# speed = C * rpm * / gear ratio / other ratio, where the gR is the 1/ (gear ratio * other ratio)
+# speed = rpm * gR (gear ratio), where the gR is the 1/ (gear ratio * other ratio * C)
 # The best shift point is using: https://glennmessersmith.com/shiftpt.html
 #
 # Now we want to shift from Gear G1 to Gear G2 (continued) at r (rpm), the gear ratio is gR1 and gR2 while at G1 and G2.
 # Let's said getTorque(r) return the Torque while rpm is r.
-# We have: delta = getTorque(r) * gR1 - getTorque(r * gR2 / gR1) * gR2
+# We have: delta = getTorque(r) / gR1 - getTorque(r / gR2 * gR1) / gR2
 # The goal is to make sure the delta is closed to 0. Then the r is the optimal shift point, said rpmo.
 # We cannot get the gR1 or gR2 directly but we know we could get C * gR from speed / rpm, said S/R, while at Gear G.
 # Then we could calculate gRn at Gn by (Sn / Rn), said gR(G) is the ration at Gear G
 # Meanwhile the C is a constant and could be combined with gR. We have:
-# delta(r, G) = getTorque(r) * gR(G) - getTorque(r * gR(G + 1) / gR(G)) * gR(G + 1)
+# delta(r, G) = getTorque(r) / gR(G) - getTorque(r / gR(G + 1) * gR(G)) / gR(G + 1)
 # and delta(r, G) -> 0
 
 
@@ -188,12 +189,13 @@ def calculate_optimal_shift_point(forza: CarInfo):
 
         # search optimal rpm. Starting from max rpm.
         rpms = np.array([item['rpm'] for item in rpm_to_torque])
-        max_rpm = int(np.max(rpms))
-        min_rpm = int(np.min(rpms))
+        rpms1 = np.array([item['rpm'] for item in rpm_to_torque1])
+        max_rpm = int(max(np.max(rpms), np.max(rpms1)))
+        min_rpm = int(max(np.min(rpms), np.min(rpms1)))
         for r in range(max_rpm, min_rpm, -50):
-            # delta(r, G) = getTorque(r) * gR(G) - getTorque(r * gR(G + 1) / gR(G)) * gR(G + 1)
+            # delta(r, G) = getTorque(r) / gR(G) - getTorque(r / gR(G + 1) * gR(G)) / gR(G + 1)
             ratio1 = get_gear_ratio(gear + 1, forza.gear_ratios)
-            delta = get_torque(r, rpm_to_torque) * ratio - ratio1 * get_torque(r * ratio1 / ratio, rpm_to_torque1)
+            delta = get_torque(r, rpm_to_torque) / ratio - get_torque(r / ratio1 * ratio, rpm_to_torque1) / ratio1
             if abs(delta) < min_dt_torque:
                 rpmo = r
                 min_dt_torque = delta
