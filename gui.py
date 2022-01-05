@@ -145,6 +145,10 @@ class MainWindow:
             self.treeview.item(self.speed_tree[key], values=round(value['speed'], 3))
             self.treeview.item(self.rpm_tree[key], values=round(value['rpmo'], 3))
 
+        for i in range(key + 1, 11):
+            self.treeview.item(self.speed_tree[i], values='-')
+            self.treeview.item(self.rpm_tree[i], values='-')
+
     def update_car_info(self, fdp):
         """update car info
 
