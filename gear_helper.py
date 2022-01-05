@@ -183,28 +183,33 @@ def calculate_optimal_shift_point(forza: CarInfo):
         rpm_to_torque = records_by_gears[gear][rpm_torque['min_rpm_index']:rpm_torque['max_rpm_index']]
         rpm_to_torque1 = records_by_gears[gear + 1][rpm_torque1['min_rpm_index']:rpm_torque1['max_rpm_index']]
 
-        min_dt_torque = 99999
-        rpmo = -1
+        min_dt_torque = 9999999
         ratio = tuple['ratio']
+        ratio1 = get_gear_ratio(gear + 1, forza.gear_ratios)
 
         # search optimal rpm. Starting from max rpm.
         rpms = np.array([item['rpm'] for item in rpm_to_torque])
         rpms1 = np.array([item['rpm'] for item in rpm_to_torque1])
         max_rpm = int(max(np.max(rpms), np.max(rpms1)))
         min_rpm = int(max(np.min(rpms), np.min(rpms1)))
+        rpmo = max_rpm
+        torqueo = get_torque(rpmo, rpm_to_torque) / ratio
         for r in range(max_rpm, min_rpm, -50):
             # delta(r, G) = getTorque(r) / gR(G) - getTorque(r / gR(G + 1) * gR(G)) / gR(G + 1)
-            ratio1 = get_gear_ratio(gear + 1, forza.gear_ratios)
-            delta = get_torque(r, rpm_to_torque) / ratio - get_torque(r / ratio1 * ratio, rpm_to_torque1) / ratio1
-            if abs(delta) < min_dt_torque:
+            torque = get_torque(r, rpm_to_torque) / ratio
+            torque1 = get_torque(r / ratio1 * ratio, rpm_to_torque1) / ratio1
+            delta = torque - torque1
+            if abs(delta) < min_dt_torque and torque > torqueo:
                 rpmo = r
                 min_dt_torque = delta
 
         speedo = rpm_to_torque[np.abs(rpms - rpmo).argmin()]['speed']
-        forza.logger.info(f'Optimal shift point from {gear} to {gear + 1} is at rpm ({min_rpm} ~ {max_rpm}) = {rpmo} r/m, speed = {speedo} vs {rpmo * ratio} km/h, delta output torque = {min_dt_torque}')
-        if max(speedo, rpmo * ratio) * 0.9 > min(speedo, rpmo * ratio):
-            forza.logger.info(f'Gear ratio {ratio} at gear {gear} maybe wrong since the speed gap between real and theory is larger than 10%. Please re-collect data for this car')
-        res[gear] = {'rpmo': rpmo, 'speed': min(speedo, rpmo * ratio)}
+        theory_speed = rpmo * ratio
+        forza.logger.info(f'Optimal shift point from {gear} to {gear + 1} is at rpm ({min_rpm} ~ {max_rpm}) = {rpmo} r/m, speed = {speedo} vs {theory_speed} km/h, delta output torque = {min_dt_torque}')
+        speed_diff = 1 - min(speedo, theory_speed) / max(speedo, theory_speed)
+        if speed_diff > 0.1:
+            forza.logger.info(f'Gear ratio {ratio} at gear {gear} maybe wrong since the speed gap between real and theory is larger than 10% {speed_diff * 100}%. Please re-collect data for this car')
+        res[gear] = {'rpmo': rpmo, 'speed': theory_speed}
 
     return res
 
