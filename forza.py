@@ -42,6 +42,7 @@ class Forza(CarInfo):
         self.threadPool = threadPool
         self.enable_clutch = enable_clutch
         self.farming = False
+        self.shift_point_factor = constants.shift_factor
 
         # shortcuts
         self.clutch = constants.clutch
@@ -199,8 +200,8 @@ class Forza(CarInfo):
             accel = fdp.accel
             fired = False
             if gear < self.maxGear:
-                target_rpm = self.shift_point[gear]['rpmo'] * constants.shift_factor
-                target_up_speed = int(self.shift_point[gear]['speed'] * constants.shift_factor)
+                target_rpm = self.shift_point[gear]['rpmo'] * self.shift_point_factor
+                target_up_speed = int(self.shift_point[gear]['speed'] * self.shift_point_factor)
                 if rpm > target_rpm and slip < 1 and accel and speed > target_up_speed:
                     self.logger.debug(f'[{iteration}] up shift triggerred. rpm > target rmp({rpm} > {target_rpm}), speed > target up speed ({speed} > {target_up_speed}), slip {slip}, accel {accel}')
                     gear_helper.up_shift_handle(gear, self)

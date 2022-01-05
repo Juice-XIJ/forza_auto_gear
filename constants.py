@@ -66,6 +66,7 @@ blipThrottleDuration = 0.1  # blip the throttle duration. Should be short since 
 
 # === Gear Shift Settings ===
 shift_factor = 0.99
+offroad_rally_shift_factor = 0.93
 
 # === Test Settings ===
 test_car_ordinal = 'analysis_test'
@@ -80,6 +81,7 @@ upshift_shortcut_txt = ['Upshift Shortcut:', '升档快捷键:']
 downshift_shortcut_txt = ['Downshift Shortcut:', '降档快捷键:']
 clutch_txt = ['Enable Clutch', '开启离合']
 farm_txt = ['Enable Farm', '开启刷图']
+offroad_rally_txt = ['Offroad, Rally', '越野，拉力']
 tire_information_txt = ['Tire Information', '轮胎信息']
 accel_txt = ['Acceleration', '加速']
 brake_txt = ['Brake', '刹车']

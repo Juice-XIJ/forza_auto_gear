@@ -84,6 +84,7 @@ class MainWindow:
         self.downshift_shortcut_txt = tkinter.StringVar()
         self.clutch_txt = tkinter.StringVar()
         self.farm_txt = tkinter.StringVar()
+        self.offroad_rally_txt = tkinter.StringVar()
         self.tire_information_txt = tkinter.StringVar()
         self.accel_txt = tkinter.StringVar()
         self.brake_txt = tkinter.StringVar()
@@ -107,6 +108,7 @@ class MainWindow:
         self.downshift_shortcut_txt.set(constants.downshift_shortcut_txt[lang_index])
         self.clutch_txt.set(constants.clutch_txt[lang_index])
         self.farm_txt.set(constants.farm_txt[lang_index])
+        self.offroad_rally_txt.set(constants.offroad_rally_txt[lang_index])
         self.tire_information_txt.set(constants.tire_information_txt[lang_index])
         self.accel_txt.set(constants.accel_txt[lang_index])
         self.brake_txt.set(constants.brake_txt[lang_index])
@@ -379,6 +381,17 @@ class MainWindow:
 
         farm_check = tkinter.Checkbutton(self.car_info_frame, textvariable=self.farm_txt, onvalue=1, offvalue=0, variable=enable_farm, bg=constants.background_color, command=set_farm, fg=constants.text_color)
         farm_check.place(relx=0.05, rely=self.get_rely(total_widget), anchor="w")
+        total_widget = total_widget + 1
+        self.car_info_frame.grid(row=0, column=0, sticky='news')
+
+        # off-road, rally setting
+        enable_offroad_rally = tkinter.IntVar(value=0)
+
+        def set_offroad_rally():
+            self.forza5.shift_point_factor = constants.offroad_rally_shift_factor if enable_offroad_rally.get() == 1 else constants.shift_factor
+
+        offroad_rally_check = tkinter.Checkbutton(self.car_info_frame, textvariable=self.offroad_rally_txt, onvalue=1, offvalue=0, variable=enable_offroad_rally, bg=constants.background_color, command=set_offroad_rally, fg=constants.text_color)
+        offroad_rally_check.place(relx=0.05, rely=self.get_rely(total_widget), anchor="w")
         total_widget = total_widget + 1
         self.car_info_frame.grid(row=0, column=0, sticky='news')
 
