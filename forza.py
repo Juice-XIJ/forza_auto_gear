@@ -209,9 +209,9 @@ class Forza(CarInfo):
 
             if not fired and gear > self.minGear:
                 lower_gear = gear - 1 if gear - 1 <= len(self.shift_point) else len(self.shift_point) - 1
-                target_down_speed = self.shift_point[lower_gear]['speed']
-                if speed + 20 < target_down_speed and slip < 1:
-                    self.logger.debug(f'[{iteration}] down shift triggerred. speed < target down speed ({speed} > {target_down_speed}), fired {fired}')
+                target_down_speed = self.shift_point[lower_gear]['speed'] * self.shift_point_factor
+                if speed + 5 < target_down_speed and slip < 1:
+                    self.logger.debug(f'[{iteration}] down shift triggerred. speed < target down speed ({speed} < {target_down_speed}), fired {fired}')
                     gear_helper.down_shift_handle(gear, self)
 
         return iteration
