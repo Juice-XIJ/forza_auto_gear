@@ -45,13 +45,13 @@ Install >= Python 3.8
     - 程序运行+手离结合 (00:26.265):
     ![program manual w/ clutch](./img/program_m_and_c.png)
 2. F10 启动当前车辆数据收集:
-    - 找一个直线竞速的起点，或者告诉直线。这样方便长距离加速。
-    - 从1档开始，逐渐加速（满油门但不要打滑）直到断油（转速开始疯狂抖动），然后手动升到下一档。依次往复直到最大档，或你只使用的最大档。
+    - 找一个直线竞速的起点，或者高速直线。这样方便长距离加速。
+    - 从1档开始，逐渐加速。1挡刚起步为了避免打滑，可以不用满油门，但当转速提起来以后可以满油门。一直到断油（转速开始疯狂抖动），然后手动升到下一档。依次往复直到最大档，或你只使用的最大档。
     - 按回转暂停数据输出，此时再按F10停止数据分析。
 3. F8 分析收集好的数据，并且会生成车辆性能和发动机分析图:
 ![console_analysis](./img/forza_performance_analysis_console.png)
 ![forza_performance_analysis](./img/forza_performance_analysis.png)
-Then the result will be saved at `./config/{car ordinal}.json`
+然后结果会保存到 `./config/{car ordinal}.json`以备后续直接使用。
 4. F7 开始自动升降档！再按一次则可以停止.
     - GUI:
     ![f7 gui test](./img/f7_gui_test_zh_cn.png)
