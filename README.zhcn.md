@@ -1,22 +1,13 @@
 [English](./README.md)
 
 # forza_auto_gear
-forza_auto_gear 是为极限竞速：地平线5开发的一款测试工具。它能帮助玩家更好地理解手动档和手离的最佳换挡时机。 此软件使用python编写。
+forza_auto_gear是为极限竞速：地平线5开发的一款测试工具。功能如下：
 
-## 先上结果图
-GUI Demo
-
-![gui demo](./img/demo.gif)
-
-A800，GTR93，飞机场直线加速
-- 自动挡 (00:27.665):
-![automatic](./img/automatic.png)
-- 手动挡 (00:27.166):
-![manual](./img/manual.png)
-- 手离结合 (00:26.441):
-![manual w/ clutch](./img/manual_and_clutch.png)
-- 程序运行+手离结合 (00:26.265):
-![program manual w/ clutch](./img/program_m_and_c.png)
+0. 图形界面，让你更轻松使用这款工具。
+1. 它能帮助玩家更好地理解手动档和手离的最佳换挡时机。 且可以进行自动升降档。
+2. 挂机刷图。能自动定时刹车。如果车卡住了，会自动复位。此功能可以和升降档同时使用，提高效率。
+3. 拉力越野特殊设置。这会自动升降档在很滑的地面也能够运行。
+4. 支持双语~
 
 ## 环境需求
 Install >= Python 3.8
@@ -35,7 +26,24 @@ Install >= Python 3.8
 2. 你也可以直接在[release](https://github.com/Juice-XIJ/forza_auto_gear/releases)里下载打包好的程序`Forza_Auto_Gear_GUI`，并运行 `Forza_Auto_Gear_GUI.exe`.
 
 ## 使用方式
-1. 如果下载的是打包好的程序，则直接运行图形界面。如果下载的是源代码，可以运行 `python ./gui.py`来使用图形界面. 如果更喜欢命令行模式，可以运行 `python ./main.py`
+### 运行程序
+如果下载的是打包好的程序，则直接运行`Forza_Auto_Gear_GUI.exe`。如果下载的是源代码，可以运行 `python ./gui.py`来使用图形界面. 如果更喜欢命令行模式，可以运行 `python ./main.py`
+
+### 自动升降档使用说明
+1. 先上结果图
+    GUI Demo
+
+    ![gui demo](./img/demo.gif)
+
+    A800，GTR93，飞机场直线加速
+    - 自动挡 (00:27.665):
+    ![automatic](./img/automatic.png)
+    - 手动挡 (00:27.166):
+    ![manual](./img/manual.png)
+    - 手离结合 (00:26.441):
+    ![manual w/ clutch](./img/manual_and_clutch.png)
+    - 程序运行+手离结合 (00:26.265):
+    ![program manual w/ clutch](./img/program_m_and_c.png)
 2. F10 启动当前车辆数据收集:
     - 找一个直线竞速的起点，或者告诉直线。这样方便长距离加速。
     - 从1档开始，逐渐加速（满油门但不要打滑）直到断油（转速开始疯狂抖动），然后手动升到下一档。依次往复直到最大档，或你只使用的最大档。
@@ -50,7 +58,8 @@ Then the result will be saved at `./config/{car ordinal}.json`
 
     - Command Line:
     ![f7 test](./img/f7_test.png)
-5. 如何你想在极其长的蓝图刷经验或者技能点， 可以开启刷图模式，即图形界面左侧，勾选`farm`选项即可。他会帮你定时刹车来避免AFK检测，以及当你的车卡在某个地方的时候，自动重置车的位置。
+### 挂机刷图使用说明
+如何你想在蓝图刷经验或者技能点， 可以开启刷图模式，即图形界面左侧，勾选`farm`选项即可。他会帮你定时刹车来避免AFK检测，以及当你的车卡在某个地方的时候，自动重置车的位置。但仍然需要玩家自己卡住加速键。这个可以用XBOX BAR或者牙签来卡，具体方法可以看看B站~
 
 ## 杂谈
 1. F7的默认是手离结合。如果不想使用手离，而只想用手动，则可以修改 `constants.py`的参数配置。如果使用图形界面，则可以在左上角直接进行修改。在图形界面的左侧面板，也可以快速修改部分快捷键~
