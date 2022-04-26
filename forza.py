@@ -150,11 +150,14 @@ class Forza(CarInfo):
         Args:
             fdp (ForzaDataPacket): datapackage
         """
-        if self.ordinal != fdp.car_ordinal or self.car_perf != fdp.car_performance_index or self.car_class != fdp.car_class or self.car_drivetrain != fdp.drivetrain_type:
+        if len(self.shift_point) <= 0 or self.ordinal != fdp.car_ordinal or self.car_perf != fdp.car_performance_index or self.car_class != fdp.car_class or self.car_drivetrain != fdp.drivetrain_type:
             self.ordinal = fdp.car_ordinal
             self.car_perf = fdp.car_performance_index
             self.car_class = fdp.car_class
             self.car_drivetrain = fdp.drivetrain_type
+            return self.__try_auto_load_config(fdp)
+        else:
+            return True
 
     def __try_auto_load_config(self, fdp: ForzaDataPacket):
         """auto load config while driving
@@ -180,7 +183,7 @@ class Forza(CarInfo):
                     if self.__try_loading_config(filename):
                         # remove legacy config if necessary
                         if len(configs) > 1:
-                            self.__cleanup_legacy_config(configs, filename)
+                            self.__cleanup_legacy_config(configs)
 
                         return True
                     else:
@@ -196,7 +199,7 @@ class Forza(CarInfo):
 
                         # dump to latest config version
                         helper.dump_config(self)
-                        self.__cleanup_legacy_config(configs, '')
+                        self.__cleanup_legacy_config(configs)
                         return True
                     else:
                         return False
@@ -207,9 +210,16 @@ class Forza(CarInfo):
         finally:
             self.logger.debug(f'{self.__try_auto_load_config.__name__} ended')
 
-    def __cleanup_legacy_config(self, configs, exclude_config):
+    def __cleanup_legacy_config(self, configs, latest_version: ConfigVersion = constants.default_config_version):
+        """cleanup legacy configs
+
+        Args:
+            configs (list): list of configs
+            latest_version (ConfigVersion, optional): config version. Defaults to constants.default_config_version.
+        """
         for config in configs:
-            if config != exclude_config:
+            version = helper.get_config_version(self, config)
+            if version != latest_version:
                 try:
                     self.logger.warning(f'removing legacy config {config}')
                     path = os.path.join(self.config_folder, config)
@@ -254,10 +264,12 @@ class Forza(CarInfo):
 
             # prepare shifting params
             slip = (fdp.tire_slip_ratio_RL + fdp.tire_slip_ratio_RR) / 2
+            angle_slip = (fdp.tire_slip_angle_RL + fdp.tire_slip_angle_RR) / 2
             speed = fdp.speed * 3.6
             rpm = fdp.current_engine_rpm
             accel = fdp.accel
             fired = False
+            self.logger.debug(f'[{iteration}] at gear {gear}. rpm {rpm}, speed {speed}, angle slip {angle_slip}, slip {slip}, accel {accel}')
 
             # up shift logic
             if gear < self.maxGear and accel:
@@ -267,14 +279,14 @@ class Forza(CarInfo):
                 # RWD logic
                 if self.car_drivetrain == 1:
                     # at low gear (<= 3)
-                    if gear <= 3 and slip >= 0.9:
-                        self.logger.debug(f'[{iteration}] up shift triggerred since RWD at gear {gear}. rpm {rpm}, speed {speed}, slip {slip}, accel {accel}')
+                    if gear <= 3 and angle_slip >= 1:
+                        self.logger.debug(f'[{iteration}] up shift triggerred since RWD at gear {gear}. rpm {rpm}, speed {speed}, angle slip {angle_slip}, slip {slip}, accel {accel}')
                         gear_helper.up_shift_handle(gear, self)
                         fired = True
                     else:
-                        fired = self.__up_shift(rpm, target_rpm, speed, target_up_speed, slip, iteration, gear)
+                        fired = self.__up_shift(rpm, target_rpm, speed, target_up_speed, slip, iteration, gear, fdp)
                 else:
-                    fired = self.__up_shift(rpm, target_rpm, speed, target_up_speed, slip, iteration, gear)
+                    fired = self.__up_shift(rpm, target_rpm, speed, target_up_speed, slip, iteration, gear, fdp)
 
             # down shift logic
             if not fired and gear > self.minGear:
@@ -285,13 +297,28 @@ class Forza(CarInfo):
                 if self.car_drivetrain == 1:
                     # don't down shift to gear 1, 2 when RWD
                     if gear >= 4:
-                        self.__down_shift(speed, target_down_speed, slip, iteration, gear)
+                        self.__down_shift(speed, target_down_speed, slip, iteration, gear, fdp)
                 else:
-                    self.__down_shift(speed, target_down_speed, slip, iteration, gear)
+                    self.__down_shift(speed, target_down_speed, slip, iteration, gear, fdp)
 
         return iteration
 
-    def __up_shift(self, rpm, target_rpm, speed, target_up_speed, slip, iteration, gear):
+    def __up_shift(self, rpm, target_rpm, speed, target_up_speed, slip, iteration, gear, fdp):
+        """up shift
+
+        Args:
+            rpm (float): rpm
+            target_rpm (float): target rpm to up shifting
+            speed (float): speed
+            target_up_speed (float): target speed to up shifting
+            slip (float): total combined slip of rear tires
+            iteration (int): package iteration
+            gear (int): current gear
+            fdp (ForzaPackage): Forza Package
+
+        Returns:
+            _type_: _description_
+        """
         if rpm > target_rpm and slip < 1 and speed > target_up_speed:
             self.logger.debug(f'[{iteration}] up shift triggerred. rpm > target rmp({rpm} > {target_rpm}), speed > target up speed ({speed} > {target_up_speed}), slip {slip}')
             gear_helper.up_shift_handle(gear, self)
@@ -299,7 +326,17 @@ class Forza(CarInfo):
         else:
             return False
 
-    def __down_shift(self, speed, target_down_speed, slip, iteration, gear):
+    def __down_shift(self, speed, target_down_speed, slip, iteration, gear, fdp):
+        """down shift
+
+        Args:
+            speed (float): speed
+            target_down_speed (float): target speed to down shifting
+            slip (float): total combined slip of rear tires
+            iteration (int): package iteration
+            gear (int): current gear
+            fdp (ForzaPackage): Forza Package
+        """
         if speed < target_down_speed * 0.95 and slip < 1:
             self.logger.debug(f'[{iteration}] down shift triggerred. speed < target down speed ({speed} < {target_down_speed}), slip {slip}')
             gear_helper.down_shift_handle(gear, self)
@@ -324,23 +361,16 @@ class Forza(CarInfo):
                 if fdp is None or fdp.car_ordinal <= 0:
                     continue
 
-                update_car_gui_func(fdp)
+                self.threadPool.submit(update_car_gui_func, fdp)
 
                 # try to load config if:
                 # 1. self.shift_point is empty
                 # or
                 # 2. fdp.car_ordinal is different from self.ordinal => means car switched
-                if len(self.shift_point) <= 0 or self.ordinal != fdp.car_ordinal:
-                    self.__update_forza_info(fdp)
-                    if self.__try_auto_load_config(fdp):
-                        update_tree_func()
-                        continue
-                    else:
-                        return
-
-                self.__update_forza_info(fdp)
-                if iteration == -1:
-                    update_tree_func()
+                if not self.__update_forza_info(fdp):
+                    return
+                else:
+                    self.threadPool.submit(update_tree_func)
 
                 # enable reset car if exp or sp farming is True
                 if self.farming and fdp.car_ordinal > 0 and fdp.speed < 20 and time.time() - reset_time > 10:

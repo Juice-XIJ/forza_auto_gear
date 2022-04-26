@@ -179,7 +179,7 @@ def dump_config(forza: CarInfo, config_version: ConfigVersion = constants.defaul
         forza.logger.debug(f'{dump_config.__name__} started')
         config = {
             # === dump data and result ===
-            'version': str(config_version),
+            'version': config_version.name,
             'ordinal': forza.ordinal,
             'perf': forza.car_perf,
             'class': forza.car_class,
@@ -197,6 +197,32 @@ def dump_config(forza: CarInfo, config_version: ConfigVersion = constants.defaul
     finally:
         forza.logger.debug(f'{dump_config.__name__} ended')
 
+def get_config_version(forza: CarInfo, filename):
+    """get config file version
+
+    Args:
+        forza (CarInfo): forza
+        filename (_type_): config file name
+
+    Returns:
+        config version: config version
+    """
+    try:
+        with open(os.path.join(forza.config_folder, filename), "r") as f:
+            config = json.loads(f.read())
+
+        if 'version' in config:
+            if config['version'] == str(ConfigVersion.v2):
+                return ConfigVersion.v2
+            elif config['version'] == str(ConfigVersion.v1):
+                return ConfigVersion.v1
+            else:
+                return ConfigVersion[config['version']]
+        else:
+            return ConfigVersion.v1
+    except Exception as e:
+        forza.logger.warning(f'failed to get version of {filename}: {e}')
+        return ConfigVersion.v1
 
 def get_config_name(forza: CarInfo, config_version: ConfigVersion = constants.default_config_version):
     """get config name
@@ -232,13 +258,13 @@ def load_config(forza: CarInfo, path: str):
             forza.ordinal = int(config['ordinal'])
 
         if 'perf' in config:
-            forza.car_perf = str(config['perf'])
+            forza.car_perf = int(config['perf'])
 
         if 'class' in config:
-            forza.car_class = str(config['class'])
+            forza.car_class = int(config['class'])
 
         if 'drivetrain' in config:
-            forza.car_drivetrain = str(config['drivetrain'])
+            forza.car_drivetrain = int(config['drivetrain'])
 
         if 'minGear' in config:
             forza.minGear = config['minGear']
