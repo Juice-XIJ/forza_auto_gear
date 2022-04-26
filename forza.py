@@ -267,6 +267,7 @@ class Forza(CarInfo):
                 # if the car is RWD, then up gear when at gear 1
                 if self.car_drivetrain == 1 and gear == 1:
                     self.logger.debug(f'[{iteration}] up shift triggerred since RWD at gear 1. rpm {rpm}, speed {speed}, slip {slip}, accel {accel}')
+                    gear_helper.up_shift_handle(gear, self)
                     fired = True
                 elif rpm > target_rpm and slip < 1 and accel and speed > target_up_speed:
                     self.logger.debug(f'[{iteration}] up shift triggerred. rpm > target rmp({rpm} > {target_rpm}), speed > target up speed ({speed} > {target_up_speed}), slip {slip}, accel {accel}')
