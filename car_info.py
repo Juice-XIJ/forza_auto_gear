@@ -4,7 +4,10 @@ class CarInfo():
         """initialization
         """
         # === Car information ===
-        self.ordinal = ''
+        self.ordinal = -1
+        self.car_perf = 0
+        self.car_class = -1
+        self.car_drivetrain = -1
         self.minGear = 1
         self.maxGear = 5
 

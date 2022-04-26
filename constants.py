@@ -1,5 +1,15 @@
+import enum
 import os
 from pynput.keyboard import Key
+
+
+# config version
+class ConfigVersion(enum.Enum):
+    v1 = 1,
+    v2 = 2
+
+
+default_config_version = ConfigVersion.v2
 
 # repo path
 root_path = os.path.dirname(os.path.abspath(__file__))
@@ -20,6 +30,22 @@ example_car_ordinal = 'example'
 # === UI settings ===
 background_color = "#1a181a"
 text_color = "#a1a1a1"
+perf_sticker_background = "#FFFFFF"
+
+# car info relx, rely
+car_info_leftbound_relx = 0.08
+car_info_rightbound_relx = 0.9
+car_info_topbound_rely = 0.195
+car_info_bottombound_rely = 0.815
+car_info_line_gap = 0.065
+
+# car drivetrain
+car_drivetrain_list = [
+    ('FWD', '前驱'),
+    ('RWD', '后驱'),
+    ('AWD', '四驱'),
+    ('N', 'N')
+]
 
 # tire canvas info: Position: [start_x1_factor, start_y1_factor, s radius]
 x_padding_left = 0.025
@@ -41,6 +67,10 @@ tires = {
     "RL": [x_padding_left, y_padding_top + height + y_dis, x_padding_left + width, y_padding_top + height * 2 + y_dis, radius],
     "RR": [x_padding_left + width + x_dis, y_padding_top + height + y_dis, x_padding_left + width * 2 + x_dis, y_padding_top + height * 2 + y_dis, radius]
 }
+
+# car class mapping
+car_class_list = ['D', 'C', 'B', 'A', 'S1', 'S2', 'X', "N"]
+car_class_color = ['#3dafd1', '#edc786', '#f28240', '#e22b2a', '#8729e2', '#3256ba', '#46ce67', text_color]
 
 # === short-cut ===
 stop = Key.pause  # stop program
@@ -82,6 +112,10 @@ downshift_shortcut_txt = ['Downshift Shortcut:', '降档快捷键:']
 clutch_txt = ['Enable Clutch', '开启离合']
 farm_txt = ['Enable Farm', '开启刷图']
 offroad_rally_txt = ['Offroad, Rally', '越野，拉力']
+car_id = ['Car ID:', '车辆序号:']
+car_class = ['Car Class:', '车辆等级:']
+car_perf = ['Car Performance:', '车辆性能:']
+car_drivetrain = ['Car Drivetrain:', '车辆传动:']
 tire_information_txt = ['Tire Information', '轮胎信息']
 accel_txt = ['Acceleration', '加速']
 brake_txt = ['Brake', '刹车']

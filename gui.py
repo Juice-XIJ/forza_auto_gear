@@ -50,6 +50,15 @@ class MainWindow:
         self.speed_tree = {}
         self.rpm_tree = {}
 
+        self.car_id_var = tkinter.StringVar()
+        self.car_id_var.set("None")
+        self.car_perf_var = tkinter.IntVar()
+        self.car_perf_var.set(0)
+        self.car_class_var = tkinter.IntVar()
+        self.car_class_var.set(-1)
+        self.car_drivetrain_var = tkinter.StringVar()
+        self.car_drivetrain_var.set('N')
+
         self.tires = {}
         self.tire_color = mcolors.LinearSegmentedColormap.from_list("", [(0, "green"), (1, "red")])
 
@@ -85,6 +94,9 @@ class MainWindow:
         self.clutch_txt = tkinter.StringVar()
         self.farm_txt = tkinter.StringVar()
         self.offroad_rally_txt = tkinter.StringVar()
+        self.car_id = tkinter.StringVar()
+        self.car_perf = tkinter.StringVar()
+        self.car_drivetrain = tkinter.StringVar()
         self.tire_information_txt = tkinter.StringVar()
         self.accel_txt = tkinter.StringVar()
         self.brake_txt = tkinter.StringVar()
@@ -109,6 +121,9 @@ class MainWindow:
         self.clutch_txt.set(constants.clutch_txt[lang_index])
         self.farm_txt.set(constants.farm_txt[lang_index])
         self.offroad_rally_txt.set(constants.offroad_rally_txt[lang_index])
+        self.car_id.set(constants.car_id[lang_index])
+        self.car_perf.set(constants.car_perf[lang_index])
+        self.car_drivetrain.set(constants.car_drivetrain[lang_index])
         self.tire_information_txt.set(constants.tire_information_txt[lang_index])
         self.accel_txt.set(constants.accel_txt[lang_index])
         self.brake_txt.set(constants.brake_txt[lang_index])
@@ -125,6 +140,9 @@ class MainWindow:
         self.program_info_txt.set(constants.program_info_txt[lang_index])
 
         # widgets to be set
+        # if hasattr(self, 'perf_canvas'):
+        #     self.perf_canvas.itemconfigure(self.car_class_text, text=self.)
+
         if hasattr(self, 'tire_canvas'):
             self.tire_canvas.itemconfigure(self.tire_canvas_text, text=self.tire_information_txt.get())
 
@@ -158,6 +176,18 @@ class MainWindow:
             fdp: fdp
         """
         if self.forza5.isRunning:
+            # Update car information
+            self.car_id_var.set(fdp.car_ordinal)
+            self.car_perf_var.set(fdp.car_performance_index)
+            self.car_class_var.set(fdp.car_class)
+            self.car_drivetrain_var.set(constants.car_drivetrain_list[fdp.drivetrain_type][self.language])
+
+            # Update PERF CARD
+            self.perf_canvas.config(bg=constants.car_class_color[fdp.car_class])
+            self.perf_canvas.itemconfig(self.car_class_text, text=constants.car_class_list[fdp.car_class])
+            self.perf_index_canvas.itemconfig(self.perf_index_text, text=fdp.car_performance_index)
+
+            # Update acceleration and brake value
             self.acceleration_var.set(f"{str(round(fdp.accel / 255 * 100, 1))}%")
             self.brake_var.set(f"{str(round(fdp.brake / 255 * 100, 1))}%")
 
@@ -188,6 +218,12 @@ class MainWindow:
         for key, _ in self.speed_tree.items():
             self.treeview.item(self.speed_tree[key], values="-")
             self.treeview.item(self.rpm_tree[key], values="-")
+
+        # reset car information
+        self.car_id_var.set("None")
+        self.car_perf_var.set(0)
+        self.car_class_var.set(-1)
+        self.car_drivetrain_var.set('')
 
         # reset accel and brake
         self.acceleration_var.set("0%")
@@ -403,33 +439,150 @@ class MainWindow:
         self.car_perf_frame.grid(row=0, column=1, sticky='news')
         self.car_perf_frame.update()
 
+        # place car id
+        tkinter.Label(
+            self.car_perf_frame,
+            textvariable=self.car_id,
+            bg=constants.background_color,
+            fg=constants.text_color,
+            font=('Helvetica 15 bold')
+        ).place(
+            relx=constants.car_info_leftbound_relx,
+            rely=constants.car_info_topbound_rely,
+            anchor=tkinter.W
+        )
+
+        tkinter.Label(
+            self.car_perf_frame,
+            textvariable=self.car_id_var,
+            bg=constants.background_color,
+            fg=constants.text_color,
+            font=('Helvetica 20 bold')
+        ).place(
+            relx=constants.car_info_leftbound_relx,
+            rely=constants.car_info_topbound_rely + constants.car_info_line_gap,
+            anchor=tkinter.W
+        )
+
+        # place car perf
+        perf_y = constants.car_info_topbound_rely + 0.28
+        tkinter.Label(
+            self.car_perf_frame,
+            textvariable=self.car_perf,
+            bg=constants.background_color,
+            fg=constants.text_color,
+            font=('Helvetica 15 bold')
+        ).place(
+            relx=constants.car_info_leftbound_relx,
+            rely=perf_y,
+            anchor=tkinter.W
+        )
+
+        # place car perf sticker canvas
+        perf_width = 0.12
+        perf_height = 0.06
+        self.perf_canvas = tkinter.Canvas(self.car_perf_frame, background=constants.car_class_color[self.forza5.car_class], bd=0, highlightthickness=False)
+        self.perf_canvas.place(relx=constants.car_info_leftbound_relx + 0.01, rely=perf_y + constants.car_info_line_gap, relwidth=perf_width, relheight=perf_height, anchor=tkinter.W)
+        self.car_class_text = self.perf_canvas.create_text(
+            self.car_perf_frame.winfo_width() * perf_width * 0.225,
+            self.car_perf_frame.winfo_height() * perf_height / 2,
+            text=constants.car_class_list[self.forza5.car_class],
+            fill=constants.perf_sticker_background,
+            font=('Helvetica 15 bold'),
+            anchor=tkinter.CENTER
+        )
+
+        perf_index_width = 0.064
+        perf_index_height = 0.05
+        self.perf_index_canvas = tkinter.Canvas(self.car_perf_frame, background=constants.perf_sticker_background, bd=0, highlightthickness=False)
+        self.perf_index_canvas.place(relx=constants.car_info_leftbound_relx + perf_width * 0.55 - 0.002, rely=perf_y + constants.car_info_line_gap - 0.00055, relwidth=perf_index_width, relheight=perf_index_height, anchor=tkinter.W)
+        self.perf_index_text = self.perf_index_canvas.create_text(
+            self.car_perf_frame.winfo_width() * perf_index_width / 2,
+            self.car_perf_frame.winfo_height() * perf_index_height / 2,
+            text=self.forza5.car_perf,
+            fill=constants.background_color,
+            font=('Helvetica 15 bold'),
+            anchor=tkinter.CENTER
+        )
+
+        # place car drivetrain
+        tkinter.Label(
+            self.car_perf_frame,
+            textvariable=self.car_drivetrain,
+            bg=constants.background_color,
+            fg=constants.text_color,
+            font=('Helvetica 15 bold')
+        ).place(
+            relx=constants.car_info_leftbound_relx,
+            rely=constants.car_info_bottombound_rely - constants.car_info_line_gap,
+            anchor=tkinter.SW
+        )
+
+        tkinter.Label(
+            self.car_perf_frame,
+            textvariable=self.car_drivetrain_var,
+            bg=constants.background_color,
+            fg=constants.text_color,
+            font=('Helvetica 20 bold')
+        ).place(
+            relx=constants.car_info_leftbound_relx,
+            rely=constants.car_info_bottombound_rely,
+            anchor=tkinter.SW
+        )
+
         # place tire information canvas
         self.tire_canvas = tkinter.Canvas(self.car_perf_frame, background=constants.background_color, bd=0, highlightthickness=False)
         self.tire_canvas.place(relx=constants.tire_canvas_relx, rely=constants.tire_canvas_rely, relwidth=constants.tire_canvas_relwidth, relheight=constants.tire_canvas_relheight, anchor=tkinter.CENTER)
-        self.tire_canvas_text = self.tire_canvas.create_text(self.car_perf_frame.winfo_width() * constants.tire_canvas_relwidth / 2,
-                                                             self.car_perf_frame.winfo_height() * constants.y_padding_top * 0.5,
-                                                             text=self.tire_information_txt.get(),
-                                                             fill=constants.text_color,
-                                                             font=('Helvetica 15 bold'),
-                                                             anchor=tkinter.CENTER)
+        self.tire_canvas_text = self.tire_canvas.create_text(
+            self.car_perf_frame.winfo_width() * constants.tire_canvas_relwidth / 2,
+            self.car_perf_frame.winfo_height() * constants.y_padding_top * 0.5,
+            text=self.tire_information_txt.get(),
+            fill=constants.text_color,
+            font=('Helvetica 15 bold'),
+            anchor=tkinter.CENTER
+        )
+
         for pos, info in constants.tires.items():
-            self.tires[pos] = self.round_rectangle(self.tire_canvas,
-                                                   self.car_perf_frame.winfo_width() * info[0],
-                                                   self.car_perf_frame.winfo_height() * info[1],
-                                                   self.car_perf_frame.winfo_width() * info[2],
-                                                   self.car_perf_frame.winfo_height() * info[3],
-                                                   radius=info[4],
-                                                   fill=constants.background_color,
-                                                   width=2,
-                                                   outline=constants.text_color)
+            self.tires[pos] = self.round_rectangle(
+                self.tire_canvas,
+                self.car_perf_frame.winfo_width() * info[0],
+                self.car_perf_frame.winfo_height() * info[1],
+                self.car_perf_frame.winfo_width() * info[2],
+                self.car_perf_frame.winfo_height() * info[3],
+                radius=info[4],
+                fill=constants.background_color,
+                width=2,
+                outline=constants.text_color
+            )
 
         # place acceleration information text
-        tkinter.Label(self.car_perf_frame, textvariable=self.accel_txt, bg=constants.background_color, fg=constants.text_color, font=('Helvetica 15 bold')).place(relx=0.15, rely=0.185, anchor=tkinter.CENTER)
-        tkinter.Label(self.car_perf_frame, textvariable=self.acceleration_var, bg=constants.background_color, fg=constants.text_color, font=('Helvetica 35 bold italic')).place(relx=0.15, rely=0.35, anchor=tkinter.CENTER)
+        tkinter.Label(
+            self.car_perf_frame,
+            textvariable=self.accel_txt,
+            bg=constants.background_color,
+            fg=constants.text_color,
+            font=('Helvetica 15 bold')
+        ).place(
+            relx=constants.car_info_rightbound_relx,
+            rely=constants.car_info_topbound_rely,
+            anchor=tkinter.E
+        )
+
+        tkinter.Label(
+            self.car_perf_frame,
+            textvariable=self.acceleration_var,
+            bg=constants.background_color,
+            fg=constants.text_color,
+            font=('Helvetica 35 bold italic')
+        ).place(
+            relx=constants.car_info_rightbound_relx,
+            rely=0.35,
+            anchor=tkinter.E
+        )
 
         # place brake information test
-        tkinter.Label(self.car_perf_frame, textvariable=self.brake_txt, bg=constants.background_color, fg=constants.text_color, font=('Helvetica 15 bold')).place(relx=0.15, rely=0.525, anchor=tkinter.CENTER)
-        tkinter.Label(self.car_perf_frame, textvariable=self.brake_var, bg=constants.background_color, fg=constants.text_color, font=('Helvetica 35 bold italic')).place(relx=0.15, rely=0.7, anchor=tkinter.CENTER)
+        tkinter.Label(self.car_perf_frame, textvariable=self.brake_txt, bg=constants.background_color, fg=constants.text_color, font=('Helvetica 15 bold')).place(relx=constants.car_info_rightbound_relx, rely=0.545, anchor=tkinter.E)
+        tkinter.Label(self.car_perf_frame, textvariable=self.brake_var, bg=constants.background_color, fg=constants.text_color, font=('Helvetica 35 bold italic')).place(relx=constants.car_info_rightbound_relx, rely=0.7, anchor=tkinter.E)
 
     def set_shift_point_frame(self):
         """set shift point frame
