@@ -197,6 +197,7 @@ def dump_config(forza: CarInfo, config_version: ConfigVersion = constants.defaul
     finally:
         forza.logger.debug(f'{dump_config.__name__} ended')
 
+
 def get_config_version(forza: CarInfo, filename):
     """get config file version
 
@@ -223,6 +224,7 @@ def get_config_version(forza: CarInfo, filename):
     except Exception as e:
         forza.logger.warning(f'failed to get version of {filename}: {e}')
         return ConfigVersion.v1
+
 
 def get_config_name(forza: CarInfo, config_version: ConfigVersion = constants.default_config_version):
     """get config name
