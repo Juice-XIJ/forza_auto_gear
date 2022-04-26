@@ -11,6 +11,7 @@ sys.path.append(r'./forza_motorsport')
 from fdp import ForzaDataPacket
 
 import constants
+from constants import ConfigVersion
 import gear_helper
 import helper
 import keyboard_helper
@@ -81,6 +82,8 @@ class Forza(CarInfo):
                 if fdp is None:
                     continue
 
+                self.__update_forza_info(fdp)
+
                 if fdp.speed > 0.1:
                     if update_car_gui_func is not None:
                         update_car_gui_func(fdp)
@@ -93,14 +96,10 @@ class Forza(CarInfo):
                         'clutch': fdp.clutch,
                         'power': fdp.power / 1000.0,
                         'torque': fdp.torque,
-                        'car_ordinal': str(fdp.car_ordinal),
                         'speed/rpm': fdp.speed * 3.6 / fdp.current_engine_rpm
                     }
                     self.records.append(info)
                     self.logger.debug(info)
-
-            if len(self.records) > 0:
-                self.ordinal = self.records[0]['car_ordinal']
         except BaseException as e:
             self.logger.exception(e)
         finally:
@@ -146,6 +145,18 @@ class Forza(CarInfo):
         finally:
             self.logger.debug(f'{self.analyze.__name__} ended')
 
+    def __update_forza_info(self, fdp: ForzaDataPacket):
+        """update forza info while running
+
+        Args:
+            fdp (ForzaDataPacket): datapackage
+        """
+        if self.ordinal != fdp.car_ordinal or self.car_perf != fdp.car_performance_index or self.car_class != fdp.car_class or self.car_drivetrain != fdp.drivetrain_type:
+            self.ordinal = fdp.car_ordinal
+            self.car_perf = fdp.car_performance_index
+            self.car_class = fdp.car_class
+            self.car_drivetrain = fdp.drivetrain_type
+
     def __try_auto_load_config(self, fdp: ForzaDataPacket):
         """auto load config while driving
 
@@ -157,24 +168,72 @@ class Forza(CarInfo):
         """
         try:
             self.logger.debug(f'{self.__try_auto_load_config.__name__} started')
-            # config name pattern: xxx_xxx_{car_ordinal}_xxx
-            config = [f for f in listdir(self.config_folder) if (isfile(join(self.config_folder, f)) and str(fdp.car_ordinal) in os.path.splitext(f)[0].split('_'))]
-            if len(config) <= 0:
+            configs = [f for f in listdir(self.config_folder) if (isfile(join(self.config_folder, f)) and str(fdp.car_ordinal) in f)]
+            if len(configs) <= 0:
                 self.logger.warning(f'config ({fdp.car_ordinal}) is not found at folder {self.config_folder}. Please run gear test ({constants.collect_data}) and/or analysis ({constants.analysis}) first!!')
                 return False
-            elif len(config) > 1:
-                self.logger.warning(f'multiple configs ({fdp.car_ordinal}) are found at folder {self.config_folder}: {config}. The car ordinal should be unique')
+            elif len(configs) > 0:
+                self.logger.info(f'found ({fdp.car_ordinal}) config(s): {configs}')
+
+                # latest config version: ordinal-perf-drivetrain.json, v2
+                filename = helper.get_config_name(self)
+                if filename in configs:
+                    if self.__try_loading_config(filename):
+                        # remove legacy config if necessary
+                        if len(configs) > 1:
+                            self.__cleanup_legacy_config(configs, filename)
+
+                        return True
+                    else:
+                        return False
+
+                # if latest config version not existed. like only ordinal.json, v1
+                filename = helper.get_config_name(self, ConfigVersion.v1)
+                if filename in configs:
+                    if self.__try_loading_config(filename):
+                        self.car_perf = fdp.car_performance_index
+                        self.car_class = fdp.car_class
+                        self.car_drivetrain = fdp.drivetrain_type
+
+                        # dump to latest config version
+                        helper.dump_config(self)
+                        self.__cleanup_legacy_config(configs, '')
+                        return True
+                    else:
+                        return False
+
+                # unknown config
+                self.logger.warning(f'unknown ({fdp.car_ordinal}) config(s) {self.config_folder}: {configs}')
                 return False
-            else:
-                self.logger.info(f'loading config {config}')
-                helper.load_config(self, os.path.join(self.config_folder, config[0]))
-                if len(self.shift_point) <= 0:
-                    self.logger.warning(f'Config is invalid. Please run gear test ({constants.collect_data}) and/or analysis ({constants.analysis}) to create a new one!!')
-                    return False
-                self.logger.info(f'loaded config {config}')
-                return True
         finally:
             self.logger.debug(f'{self.__try_auto_load_config.__name__} ended')
+
+    def __cleanup_legacy_config(self, configs, exclude_config):
+        for config in configs:
+            if config != exclude_config:
+                try:
+                    self.logger.warning(f'removing legacy config {config}')
+                    path = os.path.join(self.config_folder, config)
+                    os.remove(path)
+                except Exception as e:
+                    self.logger.warning(f'failed to remove legacy config {config}: {e}')
+
+    def __try_loading_config(self, config):
+        """try to load config
+
+        Args:
+            config (str): config file name
+
+        Returns:
+            bool: success or failure
+        """
+        self.logger.info(f'loading config {config}')
+        helper.load_config(self, os.path.join(self.config_folder, config))
+        if len(self.shift_point) <= 0:
+            self.logger.warning(f'Config is invalid. Please run gear test ({constants.collect_data}) and/or analysis ({constants.analysis}) to create a new one!!')
+            return False
+        self.logger.info(f'loaded config {config}')
+        return True
 
     def shifting(self, iteration, fdp):
         """shifting func
@@ -194,6 +253,7 @@ class Forza(CarInfo):
             if self.farming and iteration % 800 == 0:
                 self.threadPool.submit(keyboard_helper.press_brake, self)
 
+            # prepare shifting params
             slip = (fdp.tire_slip_ratio_RL + fdp.tire_slip_ratio_RR) / 2
             speed = fdp.speed * 3.6
             rpm = fdp.current_engine_rpm
@@ -210,7 +270,7 @@ class Forza(CarInfo):
             if not fired and gear > self.minGear:
                 lower_gear = gear - 1 if gear - 1 <= len(self.shift_point) else len(self.shift_point) - 1
                 target_down_speed = self.shift_point[lower_gear]['speed'] * self.shift_point_factor
-                if speed + 5 < target_down_speed and slip < 1:
+                if speed < target_down_speed * 0.95 and slip < 1:
                     self.logger.debug(f'[{iteration}] down shift triggerred. speed < target down speed ({speed} < {target_down_speed}), fired {fired}')
                     gear_helper.down_shift_handle(gear, self)
 
@@ -242,13 +302,15 @@ class Forza(CarInfo):
                 # 1. self.shift_point is empty
                 # or
                 # 2. fdp.car_ordinal is different from self.ordinal => means car switched
-                if len(self.shift_point) <= 0 or self.ordinal != str(fdp.car_ordinal):
+                if len(self.shift_point) <= 0 or self.ordinal != fdp.car_ordinal:
+                    self.__update_forza_info(fdp)
                     if self.__try_auto_load_config(fdp):
                         update_tree_func()
                         continue
                     else:
                         return
 
+                self.__update_forza_info(fdp)
                 if iteration == -1:
                     update_tree_func()
 

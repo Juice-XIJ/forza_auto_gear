@@ -13,6 +13,7 @@ from matplotlib import axes
 from matplotlib.pyplot import cm
 
 import constants
+from constants import ConfigVersion
 
 
 def nextFdp(server_socket: socket, format: str):
@@ -168,7 +169,7 @@ def convert(n: object):
         return n.item()
 
 
-def dump_config(forza: CarInfo):
+def dump_config(forza: CarInfo, config_version: ConfigVersion = constants.default_config_version):
     """dump config
 
     Args:
@@ -176,10 +177,13 @@ def dump_config(forza: CarInfo):
     """
     try:
         forza.logger.debug(f'{dump_config.__name__} started')
-        forza.ordinal = forza.records[0]['car_ordinal']
         config = {
             # === dump data and result ===
+            'version': str(config_version),
             'ordinal': forza.ordinal,
+            'perf': forza.car_perf,
+            'class': forza.car_class,
+            'drivetrain': forza.car_drivetrain,
             'minGear': forza.minGear,
             'maxGear': forza.maxGear,
             'gear_ratios': forza.gear_ratios,
@@ -188,10 +192,28 @@ def dump_config(forza: CarInfo):
             'records': forza.records,
         }
 
-        with open(os.path.join(forza.config_folder, f'{forza.ordinal}.json'), "w") as f:
+        with open(os.path.join(forza.config_folder, get_config_name(forza, config_version)), "w") as f:
             json.dump(config, f, default=convert, indent=4)
     finally:
         forza.logger.debug(f'{dump_config.__name__} ended')
+
+
+def get_config_name(forza: CarInfo, config_version: ConfigVersion = constants.default_config_version):
+    """get config name
+
+    Args:
+        forza (CarInfo): carinfo
+        config_version (ConfigVersion, optional): config version. Defaults to constants.default_config_version.
+
+    Returns:
+        str: config name
+    """
+    if config_version == ConfigVersion.v2:
+        return f'{forza.ordinal}-{forza.car_perf}-{forza.car_drivetrain}.json'
+    elif config_version == ConfigVersion.v1:
+        return f'{forza.ordinal}.json'
+    else:
+        forza.logger.warning(f'Invalid config version {str(config_version)}')
 
 
 def load_config(forza: CarInfo, path: str):
@@ -207,7 +229,16 @@ def load_config(forza: CarInfo, path: str):
             config = json.loads(f.read())
 
         if 'ordinal' in config:
-            forza.ordinal = str(config['ordinal'])
+            forza.ordinal = int(config['ordinal'])
+
+        if 'perf' in config:
+            forza.car_perf = str(config['perf'])
+
+        if 'class' in config:
+            forza.car_class = str(config['class'])
+
+        if 'drivetrain' in config:
+            forza.car_drivetrain = str(config['drivetrain'])
 
         if 'minGear' in config:
             forza.minGear = config['minGear']
