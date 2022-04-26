@@ -82,9 +82,8 @@ class Forza(CarInfo):
                 if fdp is None:
                     continue
 
-                self.__update_forza_info(fdp)
-
                 if fdp.speed > 0.1:
+                    self.__update_forza_info(fdp)
                     if update_car_gui_func is not None:
                         update_car_gui_func(fdp)
                     info = {
