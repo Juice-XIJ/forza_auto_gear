@@ -219,12 +219,6 @@ class MainWindow:
             self.treeview.item(self.speed_tree[key], values="-")
             self.treeview.item(self.rpm_tree[key], values="-")
 
-        # reset car information
-        self.car_id_var.set("None")
-        self.car_perf_var.set(0)
-        self.car_class_var.set(-1)
-        self.car_drivetrain_var.set('')
-
         # reset accel and brake
         self.acceleration_var.set("0%")
         self.brake_var.set("0%")
