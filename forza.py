@@ -258,20 +258,30 @@ class Forza(CarInfo):
             rpm = fdp.current_engine_rpm
             accel = fdp.accel
             fired = False
+
+            # up shift logic
             if gear < self.maxGear:
                 target_rpm = self.shift_point[gear]['rpmo'] * self.shift_point_factor
                 target_up_speed = int(self.shift_point[gear]['speed'] * self.shift_point_factor)
-                if rpm > target_rpm and slip < 1 and accel and speed > target_up_speed:
+
+                # if the car is RWD, then up gear when at gear 1
+                if self.car_drivetrain == 1 and gear == 1:
+                    self.logger.debug(f'[{iteration}] up shift triggerred since RWD at gear 1. rpm {rpm}, speed {speed}, slip {slip}, accel {accel}')
+                    fired = True
+                elif rpm > target_rpm and slip < 1 and accel and speed > target_up_speed:
                     self.logger.debug(f'[{iteration}] up shift triggerred. rpm > target rmp({rpm} > {target_rpm}), speed > target up speed ({speed} > {target_up_speed}), slip {slip}, accel {accel}')
                     gear_helper.up_shift_handle(gear, self)
                     fired = True
 
+            # down shift logic
             if not fired and gear > self.minGear:
-                lower_gear = gear - 1 if gear - 1 <= len(self.shift_point) else len(self.shift_point) - 1
-                target_down_speed = self.shift_point[lower_gear]['speed'] * self.shift_point_factor
-                if speed < target_down_speed * 0.95 and slip < 1:
-                    self.logger.debug(f'[{iteration}] down shift triggerred. speed < target down speed ({speed} < {target_down_speed}), fired {fired}')
-                    gear_helper.down_shift_handle(gear, self)
+                # don't down shift to gear 1 when RWD
+                if not (self.car_drivetrain == 1 and gear == 2):
+                    lower_gear = gear - 1 if gear - 1 <= len(self.shift_point) else len(self.shift_point) - 1
+                    target_down_speed = self.shift_point[lower_gear]['speed'] * self.shift_point_factor
+                    if speed < target_down_speed * 0.95 and slip < 1:
+                        self.logger.debug(f'[{iteration}] down shift triggerred. speed < target down speed ({speed} < {target_down_speed}), fired {fired}')
+                        gear_helper.down_shift_handle(gear, self)
 
         return iteration
 
