@@ -138,9 +138,9 @@ class Forza(CarInfo):
                 # rpm vs speed at 1, 1
                 helper.plot_rpm_speed(self, ax, 1, 1)
                 plt.show()
-        except BaseException as e:
+        except Exception as e:
             self.logger.exception(e)
-            self.logger.info("something went wrong. please re-test the car")
+            self.logger.error("something went wrong. please re-test the car")
         finally:
             self.logger.debug(f'{self.analyze.__name__} ended')
 
