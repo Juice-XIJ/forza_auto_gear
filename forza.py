@@ -144,7 +144,7 @@ class Forza(CarInfo):
         finally:
             self.logger.debug(f'{self.analyze.__name__} ended')
 
-    def __update_forza_info(self, fdp: ForzaDataPacket):
+    def __update_forza_info(self, fdp: ForzaDataPacket, update_tree_func=lambda *args: None):
         """update forza info while running
 
         Args:
@@ -155,7 +155,10 @@ class Forza(CarInfo):
             self.car_perf = fdp.car_performance_index
             self.car_class = fdp.car_class
             self.car_drivetrain = fdp.drivetrain_type
-            return self.__try_auto_load_config(fdp)
+            res = self.__try_auto_load_config(fdp)
+            if update_tree_func is not None:
+                self.threadPool.submit(update_tree_func)
+            return res
         else:
             return True
 
@@ -361,16 +364,15 @@ class Forza(CarInfo):
                 if fdp is None or fdp.car_ordinal <= 0:
                     continue
 
-                self.threadPool.submit(update_car_gui_func, fdp)
+                if update_car_gui_func is not None and iteration % 10 == 0:
+                    self.threadPool.submit(update_car_gui_func, fdp)
 
                 # try to load config if:
                 # 1. self.shift_point is empty
                 # or
                 # 2. fdp.car_ordinal is different from self.ordinal => means car switched
-                if not self.__update_forza_info(fdp):
+                if not self.__update_forza_info(fdp, update_tree_func):
                     return
-                else:
-                    self.threadPool.submit(update_tree_func)
 
                 # enable reset car if exp or sp farming is True
                 if self.farming and fdp.car_ordinal > 0 and fdp.speed < 20 and time.time() - reset_time > 10:
