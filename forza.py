@@ -83,7 +83,7 @@ class Forza(CarInfo):
                     continue
 
                 if fdp.speed > 0.1:
-                    self.__update_forza_info(fdp)
+                    self.__update_forza_info(fdp, dump=False)
                     if update_car_gui_func is not None:
                         update_car_gui_func(fdp)
                     info = {
@@ -144,7 +144,7 @@ class Forza(CarInfo):
         finally:
             self.logger.debug(f'{self.analyze.__name__} ended')
 
-    def __update_forza_info(self, fdp: ForzaDataPacket, update_tree_func=lambda *args: None):
+    def __update_forza_info(self, fdp: ForzaDataPacket, update_tree_func=lambda *args: None, dump: bool = True):
         """update forza info while running
 
         Args:
@@ -155,7 +155,10 @@ class Forza(CarInfo):
             self.car_perf = fdp.car_performance_index
             self.car_class = fdp.car_class
             self.car_drivetrain = fdp.drivetrain_type
-            res = self.__try_auto_load_config(fdp)
+            res = True
+            if dump:
+                res = self.__try_auto_load_config(fdp)
+
             if update_tree_func is not None:
                 self.threadPool.submit(update_tree_func)
             return res
@@ -208,7 +211,7 @@ class Forza(CarInfo):
                         return False
 
                 # unknown config
-                self.logger.warning(f'unknown ({fdp.car_ordinal}) config(s) {self.config_folder}: {configs}')
+                self.logger.warning(f'valid ({fdp.car_ordinal}) config(s) not found at {self.config_folder}: {configs}. Please run gear test ({constants.collect_data}) and/or analysis ({constants.analysis}) to create a new one!!')
                 return False
         finally:
             self.logger.debug(f'{self.__try_auto_load_config.__name__} ended')
@@ -267,12 +270,13 @@ class Forza(CarInfo):
 
             # prepare shifting params
             slip = (fdp.tire_slip_ratio_RL + fdp.tire_slip_ratio_RR) / 2
-            angle_slip = (fdp.tire_slip_angle_RL + fdp.tire_slip_angle_RR) / 2
+            angle_slip = abs((fdp.tire_slip_angle_RL + fdp.tire_slip_angle_RR) / 2)
+            f_angle_slip = abs((fdp.tire_slip_angle_FL + fdp.tire_slip_angle_FR) / 2)
             speed = fdp.speed * 3.6
             rpm = fdp.current_engine_rpm
             accel = fdp.accel
             fired = False
-            self.logger.debug(f'[{iteration}] at gear {gear}. rpm {rpm}, speed {speed}, angle slip {angle_slip}, slip {slip}, accel {accel}')
+            self.logger.debug(f'[{iteration}] at gear {gear}. rpm {rpm}, speed {speed}, FRONT angle slip {f_angle_slip}, REAR angle slip {angle_slip}, slip {slip}, accel {accel}')
 
             # up shift logic
             if gear < self.maxGear and accel:
@@ -287,9 +291,9 @@ class Forza(CarInfo):
                         gear_helper.up_shift_handle(gear, self)
                         fired = True
                     else:
-                        fired = self.__up_shift(rpm, target_rpm, speed, target_up_speed, slip, iteration, gear, fdp)
+                        fired = self.__up_shift(rpm, target_rpm, speed, target_up_speed, slip, angle_slip, iteration, gear, fdp)
                 else:
-                    fired = self.__up_shift(rpm, target_rpm, speed, target_up_speed, slip, iteration, gear, fdp)
+                    fired = self.__up_shift(rpm, target_rpm, speed, target_up_speed, slip, angle_slip, iteration, gear, fdp)
 
             # down shift logic
             if not fired and gear > self.minGear:
@@ -300,13 +304,13 @@ class Forza(CarInfo):
                 if self.car_drivetrain == 1:
                     # don't down shift to gear 1, 2 when RWD
                     if gear >= 4:
-                        self.__down_shift(speed, target_down_speed, slip, iteration, gear, fdp)
+                        self.__down_shift(speed, target_down_speed, slip, angle_slip, f_angle_slip, iteration, gear, fdp)
                 else:
-                    self.__down_shift(speed, target_down_speed, slip, iteration, gear, fdp)
+                    self.__down_shift(speed, target_down_speed, slip, angle_slip, f_angle_slip, iteration, gear, fdp)
 
         return iteration
 
-    def __up_shift(self, rpm, target_rpm, speed, target_up_speed, slip, iteration, gear, fdp):
+    def __up_shift(self, rpm, target_rpm, speed, target_up_speed, slip, angle_slip, iteration, gear, fdp):
         """up shift
 
         Args:
@@ -315,6 +319,7 @@ class Forza(CarInfo):
             speed (float): speed
             target_up_speed (float): target speed to up shifting
             slip (float): total combined slip of rear tires
+            angle_slip (float): angle_slip
             iteration (int): package iteration
             gear (int): current gear
             fdp (ForzaPackage): Forza Package
@@ -323,25 +328,26 @@ class Forza(CarInfo):
             _type_: _description_
         """
         if rpm > target_rpm and slip < 1 and speed > target_up_speed:
-            self.logger.debug(f'[{iteration}] up shift triggerred. rpm > target rmp({rpm} > {target_rpm}), speed > target up speed ({speed} > {target_up_speed}), slip {slip}')
+            self.logger.debug(f'[{iteration}] up shift triggerred. rpm > target rmp({rpm} > {target_rpm}), speed > target up speed ({speed} > {target_up_speed}), slip {slip}, {angle_slip}')
             gear_helper.up_shift_handle(gear, self)
             return True
         else:
             return False
 
-    def __down_shift(self, speed, target_down_speed, slip, iteration, gear, fdp):
+    def __down_shift(self, speed, target_down_speed, slip, angle_slip, f_angle_slip, iteration, gear, fdp):
         """down shift
 
         Args:
             speed (float): speed
             target_down_speed (float): target speed to down shifting
             slip (float): total combined slip of rear tires
+            angle_slip (float): angle_slip
             iteration (int): package iteration
             gear (int): current gear
             fdp (ForzaPackage): Forza Package
         """
-        if speed < target_down_speed * 0.95 and slip < 1:
-            self.logger.debug(f'[{iteration}] down shift triggerred. speed < target down speed ({speed} < {target_down_speed}), slip {slip}')
+        if speed < target_down_speed * 0.95 and slip < 1 and angle_slip < 0.9 and f_angle_slip < 0.9:
+            self.logger.debug(f'[{iteration}] down shift triggerred. speed < target down speed ({speed} < {target_down_speed}), slip {slip}, FRONT angle slip {f_angle_slip}, REAR angle_slip {angle_slip}')
             gear_helper.down_shift_handle(gear, self)
 
     def run(self, update_tree_func=lambda *args: None, update_car_gui_func=lambda *args: None):
