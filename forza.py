@@ -155,6 +155,7 @@ class Forza(CarInfo):
             self.car_perf = fdp.car_performance_index
             self.car_class = fdp.car_class
             self.car_drivetrain = fdp.drivetrain_type
+            res = True
             if dump:
                 res = self.__try_auto_load_config(fdp)
 
