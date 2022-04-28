@@ -83,7 +83,7 @@ class Forza(CarInfo):
                     continue
 
                 if fdp.speed > 0.1:
-                    self.__update_forza_info(fdp)
+                    self.__update_forza_info(fdp, dump=False)
                     if update_car_gui_func is not None:
                         update_car_gui_func(fdp)
                     info = {
@@ -144,7 +144,7 @@ class Forza(CarInfo):
         finally:
             self.logger.debug(f'{self.analyze.__name__} ended')
 
-    def __update_forza_info(self, fdp: ForzaDataPacket, update_tree_func=lambda *args: None):
+    def __update_forza_info(self, fdp: ForzaDataPacket, update_tree_func=lambda *args: None, dump: bool = True):
         """update forza info while running
 
         Args:
@@ -155,7 +155,9 @@ class Forza(CarInfo):
             self.car_perf = fdp.car_performance_index
             self.car_class = fdp.car_class
             self.car_drivetrain = fdp.drivetrain_type
-            res = self.__try_auto_load_config(fdp)
+            if dump:
+                res = self.__try_auto_load_config(fdp)
+
             if update_tree_func is not None:
                 self.threadPool.submit(update_tree_func)
             return res
@@ -208,7 +210,8 @@ class Forza(CarInfo):
                         return False
 
                 # unknown config
-                self.logger.warning(f'unknown ({fdp.car_ordinal}) config(s) {self.config_folder}: {configs}')
+                self.logger.warning(f'valid ({fdp.car_ordinal}) config(s) not found at {self.config_folder}: {configs}.' +
+                    'Please run gear test ({constants.collect_data}) and/or analysis ({constants.analysis}) to create a new one!!')
                 return False
         finally:
             self.logger.debug(f'{self.__try_auto_load_config.__name__} ended')
