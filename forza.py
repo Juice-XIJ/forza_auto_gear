@@ -304,6 +304,7 @@ class Forza(CarInfo):
                 if self.car_drivetrain == 1:
                     # don't down shift to gear 1, 2 when RWD
                     if gear >= 4:
+                        target_down_speed *= 0.9
                         self.__down_shift(speed, target_down_speed, slip, angle_slip, f_angle_slip, iteration, gear, fdp)
                 else:
                     self.__down_shift(speed, target_down_speed, slip, angle_slip, f_angle_slip, iteration, gear, fdp)
