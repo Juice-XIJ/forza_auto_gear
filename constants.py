@@ -13,6 +13,7 @@ default_config_version = ConfigVersion.v2
 
 # repo path
 root_path = os.path.dirname(os.path.abspath(__file__))
+setting_filename = 'settings.json'
 
 # socket information
 ip = '127.0.0.1'

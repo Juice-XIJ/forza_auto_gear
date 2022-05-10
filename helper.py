@@ -13,6 +13,7 @@ from matplotlib import axes
 from matplotlib.pyplot import cm
 
 import constants
+import keyboard_helper
 from constants import ConfigVersion
 
 
@@ -169,6 +170,28 @@ def convert(n: object):
         return n.item()
 
 
+def dump_settings(forza: CarInfo):
+    """
+        write following variables from forza to settings.json:
+        clutch
+        upshift
+        downshift
+
+    Args:
+        forza (CarInfo): car info
+    """
+    json_data = {
+        'clutch':       forza.clutch,
+        'upshift':      forza.upshift,
+        'downshift':    forza.downshift,
+    }
+
+    settings_path = os.path.join(forza.config_folder, constants.setting_filename)
+    forza.logger.info(f'saving program settings to {settings_path}')
+    with open(settings_path, "w") as f:
+        json.dump(json_data, f, default=convert, indent=4)
+
+
 def dump_config(forza: CarInfo, config_version: ConfigVersion = constants.default_config_version):
     """dump config
 
@@ -177,6 +200,8 @@ def dump_config(forza: CarInfo, config_version: ConfigVersion = constants.defaul
     """
     try:
         forza.logger.debug(f'{dump_config.__name__} started')
+        config_name = get_config_name(forza, config_version)
+        forza.logger.info(f'saving config {config_name}')
         config = {
             # === dump data and result ===
             'version': config_version.name,
@@ -192,7 +217,7 @@ def dump_config(forza: CarInfo, config_version: ConfigVersion = constants.defaul
             'records': forza.records,
         }
 
-        with open(os.path.join(forza.config_folder, get_config_name(forza, config_version)), "w") as f:
+        with open(os.path.join(forza.config_folder, config_name), "w") as f:
             json.dump(config, f, default=convert, indent=4)
     finally:
         forza.logger.debug(f'{dump_config.__name__} ended')
@@ -242,6 +267,51 @@ def get_config_name(forza: CarInfo, config_version: ConfigVersion = constants.de
         return f'{forza.ordinal}.json'
     else:
         forza.logger.warning(f'Invalid config version {str(config_version)}')
+
+
+def load_settings(forza: CarInfo):
+    """
+        overwrite following variables in forza:
+        clutch
+        upshift
+        downshift
+
+    Args:
+        forza (CarInfo): car info
+    """
+    forza.logger.debug(f'{load_settings.__name__} started')
+    settings_path = os.path.join(forza.config_folder, constants.setting_filename)
+    try:
+        valid_keys = keyboard_helper.keybind.keys()
+        if os.path.exists(settings_path):
+            forza.logger.info(f'loading program settings from {settings_path}')
+            with open(settings_path, "r") as f:
+                settings = json.loads(f.read())
+
+            if 'clutch' in settings:
+                clutch_shortcut = settings['clutch']
+                if clutch_shortcut in valid_keys:
+                    forza.clutch = clutch_shortcut
+                else:
+                    forza.logger.warning(f'clutch shortcut {clutch_shortcut} in {settings_path} is not valid')
+
+            if 'upshift' in settings:
+                upshift_shortcut = settings['upshift']
+                if upshift_shortcut in valid_keys:
+                    forza.upshift = upshift_shortcut
+                else:
+                    forza.logger.warning(f'upshift shortcut {upshift_shortcut} in {settings_path} is not valid')
+
+            if 'downshift' in settings:
+                downshift_shortcut = settings['downshift']
+                if downshift_shortcut in valid_keys:
+                    forza.downshift = downshift_shortcut
+                else:
+                    forza.logger.warning(f'downshift shortcut {downshift_shortcut} in {settings_path} is not valid')
+    except Exception as e:
+        forza.logger.warning(f'failed to load settings {settings_path}')
+    finally:
+        forza.logger.debug(f'{load_settings.__name__} ended')
 
 
 def load_config(forza: CarInfo, path: str):
