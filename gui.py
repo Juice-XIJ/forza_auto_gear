@@ -734,6 +734,7 @@ class MainWindow:
             event
         """
         shutdown(self.forza5, self.threadPool, self.listener)
+        helper.dump_settings(self.forza5)
         self.forza5.logger.info('bye~')
         self.root.destroy()
 

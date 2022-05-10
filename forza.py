@@ -1,5 +1,5 @@
-import sys
 import os
+import sys
 import time
 from concurrent.futures.thread import ThreadPoolExecutor
 from os import listdir
@@ -11,11 +11,11 @@ sys.path.append(r'./forza_motorsport')
 from fdp import ForzaDataPacket
 
 import constants
-from constants import ConfigVersion
 import gear_helper
 import helper
 import keyboard_helper
 from car_info import CarInfo
+from constants import ConfigVersion
 from logger import Logger
 
 
@@ -57,6 +57,9 @@ class Forza(CarInfo):
         # create folders if not existed
         if not os.path.exists(self.config_folder):
             os.makedirs(self.config_folder)
+
+        # init constants from config if existed
+        helper.load_settings(self)
 
         # === car data ===
         self.gear_ratios = {}

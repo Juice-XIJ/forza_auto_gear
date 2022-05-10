@@ -37,7 +37,7 @@ jobs:
         # stop the build if there are Python syntax errors or undefined names
         flake8 . --count --select=E9,F63,F7,F82 --show-source --statistics --exclude=forza_motorsport/*
         # exit-zero treats all errors as warnings. The GitHub editor is 255 chars wide
-        flake8 . --count --max-complexity=10 --max-line-length=255 --statistics --exclude=forza_motorsport/* --ignore=E402,C901
+        flake8 . --count --max-complexity=10 --max-line-length=255 --statistics --exclude=forza_motorsport/* --ignore=E402,C901,E241
     - name: Test with pytest
       run: |
         pytest
