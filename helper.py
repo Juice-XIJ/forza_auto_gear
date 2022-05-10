@@ -309,7 +309,7 @@ def load_settings(forza: CarInfo):
                 else:
                     forza.logger.warning(f'downshift shortcut {downshift_shortcut} in {settings_path} is not valid')
     except Exception as e:
-        forza.logger.warning(f'failed to load settings {settings_path}')
+        forza.logger.warning(f'failed to load settings {settings_path}: {e}')
     finally:
         forza.logger.debug(f'{load_settings.__name__} ended')
 
