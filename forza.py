@@ -18,7 +18,11 @@ from car_info import CarInfo
 from constants import ConfigVersion
 from logger import Logger
 
-debug_properties = ['gear', 'current_engine_rpm', 'speed', 'tire_slip_ratio_RL', 'tire_slip_ratio_RR', 'tire_slip_ratio_FL', 'tire_slip_ratio_FR', 'tire_slip_angle_RL', 'tire_slip_angle_RR', 'tire_slip_angle_FL', 'tire_slip_angle_FR', 'acceleration_x', 'acceleration_y', 'acceleration_z', 'velocity_x', 'velocity_y', 'velocity_z', 'accel']
+debug_properties = [
+    'gear', 'current_engine_rpm', 'speed', 'tire_slip_ratio_RL', 'tire_slip_ratio_RR', 'tire_slip_ratio_FL', 'tire_slip_ratio_FR', 'tire_slip_angle_RL', 'tire_slip_angle_RR', 'tire_slip_angle_FL', 'tire_slip_angle_FR', 'acceleration_x', 'acceleration_y',
+    'acceleration_z', 'velocity_x', 'velocity_y', 'velocity_z', 'accel'
+]
+
 
 class Forza(CarInfo):
 
