@@ -20,7 +20,7 @@ from logger import Logger
 
 debug_properties = [
     'gear', 'current_engine_rpm', 'speed', 'tire_slip_ratio_RL', 'tire_slip_ratio_RR', 'tire_slip_ratio_FL', 'tire_slip_ratio_FR', 'tire_slip_angle_RL', 'tire_slip_angle_RR', 'tire_slip_angle_FL', 'tire_slip_angle_FR', 'acceleration_x', 'acceleration_y',
-    'acceleration_z', 'velocity_x', 'velocity_y', 'velocity_z', 'accel'
+    'acceleration_z', 'velocity_x', 'velocity_y', 'velocity_z', 'accel', 'surface_rumble_FL', 'surface_rumble_FR', 'surface_rumble_RL', 'surface_rumble_RR',
 ]
 
 
@@ -255,6 +255,7 @@ class Forza(CarInfo):
         if len(self.shift_point) <= 0:
             self.logger.warning(f'Config is invalid. Please run gear test ({constants.collect_data}) and/or analysis ({constants.analysis}) to create a new one!!')
             return False
+
         self.logger.info(f'loaded config {config}')
         return True
 
@@ -294,21 +295,26 @@ class Forza(CarInfo):
                 target_rpm = self.shift_point[gear]['rpmo'] * self.shift_point_factor
                 target_up_speed = int(self.shift_point[gear]['speed'] * self.shift_point_factor)
 
-                # RWD logic
                 if self.car_drivetrain == 1:
+                    # RWD logic
+                    # When gear < 3, the upshift target rpm and speed would be a little bit (95%) lower than AWD when (slip >= 1 or angle_slip >= 1)
                     # at low gear (<= 3)
-                    if gear <= 3 and angle_slip >= 1:
-                        self.logger.debug(f'[{iteration}] up shift triggerred since RWD at gear {gear}. rpm {rpm}, speed {speed}, angle slip {angle_slip}, slip {slip}, accel {accel}')
-                        gear_helper.up_shift_handle(gear, self)
-                        fired = True
+                    if gear < 3 and (angle_slip >= 1 or slip >= 1):
+                        fired = self.__up_shift(rpm, target_rpm * 0.95, speed, target_up_speed * 0.95, slips, iteration, gear, fdp)
                     else:
                         fired = self.__up_shift(rpm, target_rpm, speed, target_up_speed, slips, iteration, gear, fdp)
                 else:
+                    # AWD, FWD logic
                     fired = self.__up_shift(rpm, target_rpm, speed, target_up_speed, slips, iteration, gear, fdp)
 
-            # down shift logic
+            # down shift logiciqw
             if not fired and gear > self.minGear:
-                lower_gear = gear - 1 if gear - 1 <= len(self.shift_point) else len(self.shift_point) - 1
+                available_gears = self.shift_point.keys()
+                if gear - 1 in available_gears:
+                    lower_gear = gear - 1
+                else:
+                    lower_gear = min(available_gears, key=lambda x:abs(x-(gear - 1)))
+
                 target_down_speed = self.shift_point[lower_gear]['speed'] * self.shift_point_factor
 
                 # RWD logic
