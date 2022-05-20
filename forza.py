@@ -313,7 +313,7 @@ class Forza(CarInfo):
                 if gear - 1 in available_gears:
                     lower_gear = gear - 1
                 else:
-                    lower_gear = min(available_gears, key=lambda x:abs(x-(gear - 1)))
+                    lower_gear = min(available_gears, key=lambda x: abs(x - (gear - 1)))
 
                 target_down_speed = self.shift_point[lower_gear]['speed'] * self.shift_point_factor
 
