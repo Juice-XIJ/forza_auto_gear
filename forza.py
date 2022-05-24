@@ -361,7 +361,7 @@ class Forza(CarInfo):
             gear (int): current gear
             fdp (ForzaPackage): Forza Package
         """
-        if speed < target_down_speed * 0.95 and slips[0] < 1 and slips[1] < 1 and slips[2] < 0.9 and slips[3] < 0.9 and abs(fdp.acceleration_x) < 1:
+        if speed < target_down_speed * 0.95 and slips[0] < 1 and slips[1] < 1 and slips[2] < 0.9 and slips[3] < 0.9:
             self.logger.debug(f'[{iteration}] down shift triggerred. speed < target down speed ({speed} < {target_down_speed}), slips {slips}')
             gear_helper.down_shift_handle(gear, self)
 

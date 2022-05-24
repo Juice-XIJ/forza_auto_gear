@@ -202,6 +202,7 @@ def calculate_optimal_shift_point(forza: CarInfo):
             if abs(delta) < min_dt_torque and torque > torqueo:
                 rpmo = r
                 min_dt_torque = delta
+                torqueo = torque
 
         speedo = rpm_to_torque[np.abs(rpms - rpmo).argmin()]['speed']
         theory_speed = rpmo * ratio
