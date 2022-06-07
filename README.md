@@ -6,7 +6,7 @@ forza_auto_gear is a tool for Forza Horizon 5. It will help us understand the be
 ## Quick View
 GUI Demo
 
-![gui demo](./img/demo.gif)
+[Demo](https://www.bilibili.com/video/BV11R4y1A7jA/)
 
 A800, GTR93, Aerodromo Drag Strip
 - Automatic (00:27.665):

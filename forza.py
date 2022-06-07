@@ -300,7 +300,7 @@ class Forza(CarInfo):
                     # When gear < 3, the upshift target rpm and speed would be a little bit (95%) lower than AWD when (slip >= 1 or angle_slip >= 1)
                     # at low gear (<= 3)
                     if gear < 3 and (angle_slip >= 1 or slip >= 1):
-                        fired = self.__up_shift(rpm, target_rpm * 0.95, speed, target_up_speed * 0.95, slips, iteration, gear, fdp)
+                        fired = self.__up_shift(rpm, target_rpm, speed, target_up_speed, slips, iteration, gear, fdp)
                     else:
                         fired = self.__up_shift(rpm, target_rpm, speed, target_up_speed, slips, iteration, gear, fdp)
                 else:
@@ -319,8 +319,8 @@ class Forza(CarInfo):
 
                 # RWD logic
                 if self.car_drivetrain == 1:
-                    # don't down shift to gear 1, 2 when RWD
-                    if gear >= 4:
+                    # don't down shift to gear 1 when RWD
+                    if gear >= 3:
                         self.__down_shift(speed, target_down_speed, slips, iteration, gear, fdp)
                 else:
                     self.__down_shift(speed, target_down_speed, slips, iteration, gear, fdp)
@@ -343,8 +343,8 @@ class Forza(CarInfo):
         Returns:
             _type_: _description_
         """
-        if rpm > target_rpm and slips[0] < 1 and slips[1] < 1 and speed > target_up_speed:
-            self.logger.debug(f'[{iteration}] up shift triggerred. rpm > target rmp({rpm} > {target_rpm}), speed > target up speed ({speed} > {target_up_speed}), slips {slips}')
+        if rpm > target_rpm and slips[0] < 1 and speed > target_up_speed:
+            self.logger.debug(f'[{iteration}] up shift triggered. rpm > target rmp({rpm} > {target_rpm}), speed > target up speed ({speed} > {target_up_speed}), slips {slips}')
             gear_helper.up_shift_handle(gear, self)
             return True
         else:
@@ -361,8 +361,8 @@ class Forza(CarInfo):
             gear (int): current gear
             fdp (ForzaPackage): Forza Package
         """
-        if speed < target_down_speed * 0.95 and slips[0] < 1 and slips[1] < 1 and slips[2] < 0.9 and slips[3] < 0.9:
-            self.logger.debug(f'[{iteration}] down shift triggerred. speed < target down speed ({speed} < {target_down_speed}), slips {slips}')
+        if speed < target_down_speed * 0.95 and slips[0] < 1:
+            self.logger.debug(f'[{iteration}] down shift triggered. speed < target down speed ({speed} < {target_down_speed}), slips {slips}')
             gear_helper.down_shift_handle(gear, self)
 
     def run(self, update_tree_func=lambda *args: None, update_car_gui_func=lambda *args: None):

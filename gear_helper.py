@@ -199,7 +199,7 @@ def calculate_optimal_shift_point(forza: CarInfo):
             torque = get_torque(r, rpm_to_torque) / ratio
             torque1 = get_torque(r / ratio1 * ratio, rpm_to_torque1) / ratio1
             delta = torque - torque1
-            if abs(delta) < min_dt_torque and torque > torqueo:
+            if abs(delta) < min_dt_torque and torque >= torqueo and r >= rpmo:
                 rpmo = r
                 min_dt_torque = delta
                 torqueo = torque
@@ -233,7 +233,6 @@ def up_shift_handle(gear: int, forza: CarInfo):
     cur = time.time()
     if gear < forza.maxGear and cur - forza.last_upshift >= constants.upShiftCoolDown:
         forza.logger.info(f'[UpShift] up shift fired. gear < maxGear ({gear}, {forza.maxGear}) and gap >= upShiftCoolDown ({cur - forza.last_upshift}, {constants.upShiftCoolDown})')
-        forza.last_upshift = cur
         if forza.clutch:
 
             def press():
@@ -252,6 +251,8 @@ def up_shift_handle(gear: int, forza: CarInfo):
             # release clutch
             keyboard_helper.release_str(forza.clutch)
             forza.logger.debug(f'[UpShift] clutch {forza.clutch} up on {gear}')
+
+        forza.last_upshift = cur
     else:
         forza.logger.debug(f'[UpShift] skip up shift. gear >= maxGear ({gear}, {forza.maxGear}) or gap < upShiftCoolDown ({cur - forza.last_upshift}, {constants.upShiftCoolDown})')
 
