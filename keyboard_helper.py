@@ -206,6 +206,7 @@ def resetcar(forza: CarInfo):
     release_str('x')
 
     # press enter
+    time.sleep(2)
     pressdown_str('enter')
     time.sleep(0.3)
     release_str('enter')
