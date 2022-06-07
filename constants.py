@@ -96,7 +96,7 @@ upShiftCoolDown = 0.35  # cooldown after up shift
 blipThrottleDuration = 0.12  # blip the throttle duration. Should be short since keyboard is 100% acceleration output
 
 # === Gear Shift Settings ===
-shift_factor = 0.99
+shift_factor = 0.97
 offroad_rally_shift_factor = 0.93
 
 # === Test Settings ===
