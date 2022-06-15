@@ -75,6 +75,11 @@ class Forza(CarInfo):
         self.last_upshift = time.time()
         self.last_downshift = time.time()
 
+        # === exp farm setting ===
+        self.reset_car = 0
+        self.reset_timer = time.time()
+        self.break_timer = time.time()
+
     def test_gear(self, update_car_gui_func=None):
         """collect gear information
 
@@ -152,7 +157,7 @@ class Forza(CarInfo):
         finally:
             self.logger.debug(f'{self.analyze.__name__} ended')
 
-    def __update_forza_info(self, fdp: ForzaDataPacket, update_tree_func=lambda *args: None, dump: bool = True):
+    def __update_forza_info(self, fdp: ForzaDataPacket, update_tree_func=lambda *args: None, dump: bool = True, first_load: bool = False):
         """update forza info while running
 
             # try to load config if:
@@ -161,7 +166,7 @@ class Forza(CarInfo):
         Args:
             fdp (ForzaDataPacket): datapackage
         """
-        if  self.ordinal != fdp.car_ordinal or self.car_perf != fdp.car_performance_index or self.car_class != fdp.car_class or self.car_drivetrain != fdp.drivetrain_type:
+        if first_load or self.ordinal != fdp.car_ordinal or self.car_perf != fdp.car_performance_index or self.car_class != fdp.car_class or self.car_drivetrain != fdp.drivetrain_type:
             self.ordinal = fdp.car_ordinal
             self.car_perf = fdp.car_performance_index
             self.car_class = fdp.car_class
@@ -170,8 +175,12 @@ class Forza(CarInfo):
             if dump:
                 res = self.__try_auto_load_config(fdp)
 
+            if not res:
+                self.shift_point = {}
+
             if update_tree_func is not None:
                 self.threadPool.submit(update_tree_func)
+
             return res
         else:
             return True
@@ -276,10 +285,6 @@ class Forza(CarInfo):
         if len(self.shift_point) > 0 and fdp.speed > 0.1 and gear >= self.minGear:
             iteration = iteration + 1
 
-            # exp or sp farming to avoid afk detection
-            if self.farming and iteration % 800 == 0:
-                self.threadPool.submit(keyboard_helper.press_brake, self)
-
             # prepare shifting params
             slip = (fdp.tire_slip_ratio_RL + fdp.tire_slip_ratio_RR) / 2
             f_slip = (fdp.tire_slip_ratio_FL + fdp.tire_slip_ratio_FR) / 2
@@ -368,6 +373,28 @@ class Forza(CarInfo):
             self.logger.debug(f'[{iteration}] down shift triggered. speed < target down speed ({speed} < {target_down_speed}), slips {slips}')
             gear_helper.down_shift_handle(gear, self)
 
+    def __exp_farming_setup(self, fdp):
+        """exp farming setup
+
+        Args:
+            fdp (ForzaDataPacket): datapackage
+        """
+        # enable reset car if exp or sp farming is True
+        if self.farming and fdp.car_ordinal > 0 and fdp.speed < 20 and time.time() - self.reset_time > 10:
+            self.reset_car = self.reset_car + 1
+            # reset car position
+            if self.reset_car == 200:
+                self.reset_car = 0
+                self.threadPool.submit(keyboard_helper.resetcar, self)
+                self.reset_time = time.time()
+        else:
+            self.reset_car = 0
+
+        # exp or sp farming to avoid afk detection, 30s interval
+        if self.farming and time.time() - self.break_timer > 30:
+            self.threadPool.submit(keyboard_helper.press_brake, self)
+            self.break_timer = time.time()
+
     def run(self, update_tree_func=lambda *args: None, update_car_gui_func=lambda *args: None):
         """run the auto shifting
 
@@ -379,9 +406,14 @@ class Forza(CarInfo):
             self.logger.debug(f'{self.run.__name__} started')
             helper.create_socket(self)
             iteration = -1
-            reset_car = 0
-            reset_time = time.time()
+            self.reset_car = 0
+            self.reset_time = time.time()
             refresh_time = time.time()
+            first_load = True
+
+            if self.farming:
+                keyboard_helper.pressdown_str('w')
+
             while self.isRunning:
                 fdp = helper.nextFdp(self.server_socket, self.packet_format)
 
@@ -389,22 +421,17 @@ class Forza(CarInfo):
                 if fdp is None or fdp.car_ordinal <= 0:
                     continue
 
-                if update_car_gui_func is not None and time.time() - refresh_time > 20:
+                # UI refresh, every 0.1s
+                if update_car_gui_func is not None and time.time() - refresh_time > 0.1:
                     self.threadPool.submit(update_car_gui_func, fdp)
+                    refresh_time = time.time()
 
-                self.__update_forza_info(fdp, update_tree_func)
+                # load car config
+                self.__update_forza_info(fdp, update_tree_func, first_load=first_load)
+                first_load = False
 
                 # enable reset car if exp or sp farming is True
-                if self.farming and fdp.car_ordinal > 0 and fdp.speed < 20 and time.time() - reset_time > 10:
-                    reset_car = reset_car + 1
-                    # reset car position
-                    if reset_car == 200:
-                        reset_car = 0
-                        self.threadPool.submit(keyboard_helper.resetcar, self)
-                        reset_time = time.time()
-                    continue
-                else:
-                    reset_car = 0
+                self.__exp_farming_setup(fdp)
 
                 # shifting
                 iteration = self.shifting(iteration, fdp)
@@ -412,5 +439,8 @@ class Forza(CarInfo):
             self.logger.exception(e)
         finally:
             self.isRunning = False
+            if self.farming:
+                keyboard_helper.release_str('w')
+
             helper.close_socket(self)
             self.logger.debug(f'{self.run.__name__} finished')
