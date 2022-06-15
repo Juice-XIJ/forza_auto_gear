@@ -155,10 +155,13 @@ class Forza(CarInfo):
     def __update_forza_info(self, fdp: ForzaDataPacket, update_tree_func=lambda *args: None, dump: bool = True):
         """update forza info while running
 
+            # try to load config if:
+            # self.ordinal != fdp.car_ordinal or self.car_perf != fdp.car_performance_index or self.car_class != fdp.car_class or self.car_drivetrain != fdp.drivetrain_type
+
         Args:
             fdp (ForzaDataPacket): datapackage
         """
-        if len(self.shift_point) <= 0 or self.ordinal != fdp.car_ordinal or self.car_perf != fdp.car_performance_index or self.car_class != fdp.car_class or self.car_drivetrain != fdp.drivetrain_type:
+        if  self.ordinal != fdp.car_ordinal or self.car_perf != fdp.car_performance_index or self.car_class != fdp.car_class or self.car_drivetrain != fdp.drivetrain_type:
             self.ordinal = fdp.car_ordinal
             self.car_perf = fdp.car_performance_index
             self.car_class = fdp.car_class
@@ -270,7 +273,7 @@ class Forza(CarInfo):
             [int]: iteration
         """
         gear = fdp.gear
-        if fdp.speed > 0.1 and gear >= self.minGear:
+        if len(self.shift_point) > 0 and fdp.speed > 0.1 and gear >= self.minGear:
             iteration = iteration + 1
 
             # exp or sp farming to avoid afk detection
@@ -378,6 +381,7 @@ class Forza(CarInfo):
             iteration = -1
             reset_car = 0
             reset_time = time.time()
+            refresh_time = time.time()
             while self.isRunning:
                 fdp = helper.nextFdp(self.server_socket, self.packet_format)
 
@@ -385,15 +389,10 @@ class Forza(CarInfo):
                 if fdp is None or fdp.car_ordinal <= 0:
                     continue
 
-                if update_car_gui_func is not None and iteration % 10 == 0:
+                if update_car_gui_func is not None and time.time() - refresh_time > 20:
                     self.threadPool.submit(update_car_gui_func, fdp)
 
-                # try to load config if:
-                # 1. self.shift_point is empty
-                # or
-                # 2. fdp.car_ordinal is different from self.ordinal => means car switched
-                if not self.__update_forza_info(fdp, update_tree_func):
-                    return
+                self.__update_forza_info(fdp, update_tree_func)
 
                 # enable reset car if exp or sp farming is True
                 if self.farming and fdp.car_ordinal > 0 and fdp.speed < 20 and time.time() - reset_time > 10:
