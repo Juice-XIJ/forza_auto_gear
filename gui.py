@@ -161,6 +161,7 @@ class MainWindow:
     def update_tree(self):
         """Update shift point tree
         """
+        key = 0
         for key, value in self.forza5.shift_point.items():
             self.treeview.item(self.speed_tree[key], values=round(value['speed'], 3))
             self.treeview.item(self.rpm_tree[key], values=round(value['rpmo'], 3))
