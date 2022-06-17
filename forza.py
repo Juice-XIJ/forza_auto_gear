@@ -1,3 +1,4 @@
+from asyncio.windows_events import NULL
 import os
 import sys
 import time
@@ -391,9 +392,10 @@ class Forza(CarInfo):
             self.reset_car = 0
 
         # exp or sp farming to avoid afk detection, 30s interval
-        if self.farming and time.time() - self.break_timer > 30:
-            self.threadPool.submit(keyboard_helper.press_brake, self)
-            self.break_timer = time.time()
+        if self.shift_point is NULL or len(self.shift_point) == 0:
+            if self.farming and time.time() - self.break_timer > 30:
+                self.threadPool.submit(keyboard_helper.press_brake, self)
+                self.break_timer = time.time()
 
     def run(self, update_tree_func=lambda *args: None, update_car_gui_func=lambda *args: None):
         """run the auto shifting
