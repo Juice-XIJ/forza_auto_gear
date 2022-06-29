@@ -20,8 +20,7 @@ from constants import ConfigVersion
 from logger import Logger
 
 debug_properties = [
-    'gear', 'current_engine_rpm', 'speed', 'tire_slip_ratio_RL', 'tire_slip_ratio_RR', 'tire_slip_ratio_FL', 'tire_slip_ratio_FR', 'tire_slip_angle_RL', 'tire_slip_angle_RR', 'tire_slip_angle_FL', 'tire_slip_angle_FR', 'acceleration_x', 'acceleration_y',
-    'acceleration_z', 'velocity_x', 'velocity_y', 'velocity_z', 'accel', 'surface_rumble_FL', 'surface_rumble_FR', 'surface_rumble_RL', 'surface_rumble_RR',
+    'norm_driving_line', 'norm_ai_brake_diff', 'brake'
 ]
 
 
@@ -78,6 +77,7 @@ class Forza(CarInfo):
 
         # === exp farm setting ===
         self.reset_car = 0
+        self.isBrake = False
         self.reset_timer = time.time()
         self.break_timer = time.time()
 
@@ -380,20 +380,20 @@ class Forza(CarInfo):
         Args:
             fdp (ForzaDataPacket): datapackage
         """
-        # enable reset car if exp or sp farming is True
-        if self.farming and fdp.car_ordinal > 0 and fdp.speed < 20 and time.time() - self.reset_time > 10:
-            self.reset_car = self.reset_car + 1
-            # reset car position
-            if self.reset_car == 200:
+        if self.farming and fdp.car_ordinal > 0:
+            # enable reset car if exp or sp farming is True
+            if abs(fdp.norm_driving_line) >= 127 or fdp.speed < 20:
+                self.reset_car = self.reset_car + 1
+                # reset car position
+                if self.reset_car >= 100 and time.time() - self.reset_time > 10:
+                    self.reset_car = 0
+                    self.threadPool.submit(keyboard_helper.resetcar, self)
+                    self.reset_time = time.time()
+            else:
                 self.reset_car = 0
-                self.threadPool.submit(keyboard_helper.resetcar, self)
-                self.reset_time = time.time()
-        else:
-            self.reset_car = 0
 
-        # exp or sp farming to avoid afk detection, 30s interval
-        if self.shift_point is NULL or len(self.shift_point) == 0:
-            if self.farming and time.time() - self.break_timer > 30:
+            # exp or sp farming to avoid afk detection, 30s interval
+            if time.time() - self.break_timer > 30 and fdp.norm_ai_brake_diff > 0:
                 self.threadPool.submit(keyboard_helper.press_brake, self)
                 self.break_timer = time.time()
 
