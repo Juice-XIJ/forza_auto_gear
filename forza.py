@@ -19,7 +19,8 @@ from constants import ConfigVersion
 from logger import Logger
 
 debug_properties = [
-    'norm_driving_line', 'norm_ai_brake_diff', 'brake'
+    'gear', 'current_engine_rpm', 'speed', 'tire_slip_ratio_RL', 'tire_slip_ratio_RR', 'tire_slip_ratio_FL', 'tire_slip_ratio_FR', 'tire_slip_angle_RL', 'tire_slip_angle_RR', 'tire_slip_angle_FL', 'tire_slip_angle_FR', 'acceleration_x', 'acceleration_y',
+    'acceleration_z', 'velocity_x', 'velocity_y', 'velocity_z', 'accel', 'surface_rumble_FL', 'surface_rumble_FR', 'surface_rumble_RL', 'surface_rumble_RR', 'norm_driving_line', 'norm_ai_brake_diff', 'brake',
 ]
 
 
