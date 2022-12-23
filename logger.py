@@ -28,7 +28,7 @@ class TextHandler(logging.Handler):
         self.text.insert('end', msg + '\n', record.levelname)
         self.text.see('end')
         if self.num_lines() > self.line_check:
-            self.text.delete(1.0, self.line_check - self.line_limitation)
+            self.text.delete(1.0, float(min(2, self.line_check - self.line_limitation)))
 
 
 class Logger:
