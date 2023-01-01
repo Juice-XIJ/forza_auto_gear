@@ -17,8 +17,8 @@ class TextHandler(logging.Handler):
         self.text.tag_config(logging.getLevelName(logging.WARNING), foreground='#fca862')
         self.text.tag_config(logging.getLevelName(logging.ERROR), foreground='#ff3333')
         self.text.tag_config(logging.getLevelName(logging.CRITICAL), foreground='#b30000')
-        self.line_limitation = 6000.0
-        self.line_check = 6500.0
+        self.line_limitation = 200.0
+        self.line_check = 250.0
 
     def num_lines(self):
         return int(self.text.index('end').split('.')[0]) - 1
