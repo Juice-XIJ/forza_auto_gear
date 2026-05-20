@@ -1,5 +1,6 @@
 import json
 import locale
+import logging
 import os
 import socket
 import sys
@@ -30,7 +31,8 @@ def nextFdp(server_socket: socket, format: str):
     try:
         message, _ = server_socket.recvfrom(1024)
         return ForzaDataPacket(message, packet_format=format)
-    except BaseException:
+    except Exception as e:
+        logging.debug(f'nextFdp failed: {e}')
         return None
 
 
@@ -362,7 +364,7 @@ def load_config(forza: CarInfo, path: str):
 
 
 def rgb(r, g, b):
-    """generate rbg in hex
+    """generate rgb in hex
 
     Args:
         r
@@ -372,7 +374,7 @@ def rgb(r, g, b):
     Returns:
         rgb in hex
     """
-    return "#%s%s%s" % tuple([hex(int(c * 255))[2:].rjust(2, "0") for c in (r, g, b)])
+    return "#%s%s%s" % tuple([hex(int(max(0, min(1, c)) * 255))[2:].rjust(2, "0") for c in (r, g, b)])
 
 
 def get_sys_lang():

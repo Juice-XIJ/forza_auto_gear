@@ -113,7 +113,7 @@ keybind = {
     'num_lock': 0x90,
     'scroll_lock': 0x91,
     'left_shift': 0xA0,
-    'right_shift ': 0xA1,
+    'right_shift': 0xA1,
     'left_control': 0xA2,
     'right_control': 0xA3,
     'left_menu': 0xA4,
@@ -153,10 +153,9 @@ keybind = {
     '\\': 0xDC,
     ']': 0xDD,
     "'": 0xDE,
-    '`': 0xC0
 }
 
-key_list = keybind.keys()
+key_list = list(keybind.keys())
 
 
 def pressdown_str(keystr: str):

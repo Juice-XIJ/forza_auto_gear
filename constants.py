@@ -5,7 +5,7 @@ from pynput.keyboard import Key
 
 # config version
 class ConfigVersion(enum.Enum):
-    v1 = 1,
+    v1 = 1
     v2 = 2
 
 

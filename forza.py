@@ -78,7 +78,7 @@ class Forza(CarInfo):
         # === exp farm setting ===
         self.reset_car = 0
         self.isBrake = False
-        self.reset_timer = time.time()
+        self.reset_time = time.time()
         self.break_timer = time.time()
 
     def test_gear(self, update_car_gui_func=None):
@@ -109,11 +109,11 @@ class Forza(CarInfo):
                         'clutch': fdp.clutch,
                         'power': fdp.power / 1000.0,
                         'torque': fdp.torque,
-                        'speed/rpm': fdp.speed * 3.6 / fdp.current_engine_rpm
+                        'speed/rpm': fdp.speed * 3.6 / max(fdp.current_engine_rpm, 1)
                     }
                     self.records.append(info)
                     self.logger.debug(info)
-        except BaseException as e:
+        except Exception as e:
             self.logger.exception(e)
         finally:
             self.isRunning = False
@@ -306,17 +306,14 @@ class Forza(CarInfo):
 
                 if self.car_drivetrain == 1:
                     # RWD logic
-                    # When gear < 3, the upshift target rpm and speed would be a little bit (95%) lower than AWD when (slip >= 1 or angle_slip >= 1)
-                    # at low gear (<= 3)
-                    if gear < 3 and (angle_slip >= 1 or slip >= 1):
-                        fired = self.__up_shift(rpm, target_rpm, speed, target_up_speed, slips, iteration, gear, fdp)
-                    else:
-                        fired = self.__up_shift(rpm, target_rpm, speed, target_up_speed, slips, iteration, gear, fdp)
+                    # TODO: consider applying a 0.95 factor at low gear with
+                    # wheelspin to trigger upshift earlier and reduce traction loss.
+                    fired = self.__up_shift(rpm, target_rpm, speed, target_up_speed, slips, iteration, gear, fdp)
                 else:
                     # AWD, FWD logic
                     fired = self.__up_shift(rpm, target_rpm, speed, target_up_speed, slips, iteration, gear, fdp)
 
-            # down shift logiciqw
+            # down shift logic
             if not fired and gear > self.minGear:
                 available_gears = self.shift_point.keys()
                 if gear - 1 in available_gears:
@@ -353,7 +350,7 @@ class Forza(CarInfo):
             _type_: _description_
         """
         if rpm > target_rpm and slips[0] < 1 and speed > target_up_speed:
-            self.logger.debug(f'[{iteration}] up shift triggered. rpm > target rmp({rpm} > {target_rpm}), speed > target up speed ({speed} > {target_up_speed}), slips {slips}')
+            self.logger.debug(f'[{iteration}] up shift triggered. rpm > target rpm({rpm} > {target_rpm}), speed > target up speed ({speed} > {target_up_speed}), slips {slips}')
             gear_helper.up_shift_handle(gear, self)
             return True
         else:
@@ -373,6 +370,8 @@ class Forza(CarInfo):
         if speed < target_down_speed * 0.95 and slips[0] < 1:
             self.logger.debug(f'[{iteration}] down shift triggered. speed < target down speed ({speed} < {target_down_speed}), slips {slips}')
             gear_helper.down_shift_handle(gear, self)
+            return True
+        return False
 
     def __exp_farming_setup(self, fdp):
         """exp farming setup
@@ -437,7 +436,7 @@ class Forza(CarInfo):
 
                 # shifting
                 iteration = self.shifting(iteration, fdp)
-        except BaseException as e:
+        except Exception as e:
             self.logger.exception(e)
         finally:
             self.isRunning = False
