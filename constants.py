@@ -103,35 +103,36 @@ offroad_rally_shift_factor = 0.93
 test_car_ordinal = 'analysis_test'
 
 # === Text Settings ===
-select_language_txt = ['Select Language:', '选择语言:']
-language_txt = ['English', '中文']
+# All UI strings are loaded from locales/{en,zhcn}.json via i18n.t.
+# constants.foo_txt[lang_index] continues to work as before.
+from i18n import t as _t  # noqa: E402  (intentional late import after constants above)
+
+select_language_txt = _t('select_language_txt')
+language_txt = _t('language_txt')
 default_language = 0
 
-clutch_shortcut_txt = ['Clutch Shortcut:', '离合快捷键:']
-upshift_shortcut_txt = ['Upshift Shortcut:', '升档快捷键:']
-downshift_shortcut_txt = ['Downshift Shortcut:', '降档快捷键:']
-clutch_txt = ['Enable Clutch', '开启离合']
-farm_txt = ['Enable Farm', '开启刷图']
-offroad_rally_txt = ['Offroad, Rally', '越野，拉力']
-car_id = ['Car ID:', '车辆序号:']
-car_class = ['Car Class:', '车辆等级:']
-car_perf = ['Car Performance:', '车辆性能:']
-car_drivetrain = ['Car Drivetrain:', '车辆传动:']
-tire_information_txt = ['Tire Information', '轮胎信息']
-accel_txt = ['Acceleration', '加速']
-brake_txt = ['Brake', '刹车']
-shift_point_txt = ['Shift Point', '换挡点']
-tree_value_txt = ['Value', '结果']
-speed_txt = ['Speed', '速度']
-rpm_txt = ['RPM', '转速']
-collect_button_txt = ['Collect Data', '收集数据']
-analysis_button_txt = ['Analysis', '分析数据']
-run_button_txt = ['Run Auto Shift', '运行自动换挡']
-pause_button_txt = ['Pause', '暂停']
-exit_button_txt = ['Exit', '退出']
-clear_log_txt = ['Clear', '清空']
+clutch_shortcut_txt = _t('clutch_shortcut_txt')
+upshift_shortcut_txt = _t('upshift_shortcut_txt')
+downshift_shortcut_txt = _t('downshift_shortcut_txt')
+clutch_txt = _t('clutch_txt')
+farm_txt = _t('farm_txt')
+offroad_rally_txt = _t('offroad_rally_txt')
+car_id = _t('car_id')
+car_class = _t('car_class')
+car_perf = _t('car_perf')
+car_drivetrain = _t('car_drivetrain')
+tire_information_txt = _t('tire_information_txt')
+accel_txt = _t('accel_txt')
+brake_txt = _t('brake_txt')
+shift_point_txt = _t('shift_point_txt')
+tree_value_txt = _t('tree_value_txt')
+speed_txt = _t('speed_txt')
+rpm_txt = _t('rpm_txt')
+collect_button_txt = _t('collect_button_txt')
+analysis_button_txt = _t('analysis_button_txt')
+run_button_txt = _t('run_button_txt')
+pause_button_txt = _t('pause_button_txt')
+exit_button_txt = _t('exit_button_txt')
+clear_log_txt = _t('clear_log_txt')
 
-program_info_txt = [
-    'If you found any issues, or want to contribute to the program, feel free to visit github: https://github.com/Juice-XIJ/forza_auto_gear',
-    '如果您发现任何bugs，或想参加这个project，欢迎访问我的github: https://github.com/Juice-XIJ/forza_auto_gear'
-]
+program_info_txt = _t('program_info_txt')
