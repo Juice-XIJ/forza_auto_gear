@@ -14,24 +14,22 @@ on:
 jobs:
   build:
 
-    runs-on: Windows-latest
+    runs-on: windows-latest
 
     steps:
-    - uses: actions/checkout@v3
-    - name: Set up Python 3.10
-      uses: actions/setup-python@v4
+    - uses: actions/checkout@v4
       with:
-        python-version: "3.10"
+        submodules: true
+    - name: Set up Python 3.13
+      uses: actions/setup-python@v5
+      with:
+        python-version: "3.13"
     - name: Install dependencies
       run: |
         python -m pip install --upgrade pip
         pip install flake8 pytest
         pip install -r requirements.txt
         pip install pyinstaller
-    - name: submodule
-      run: |
-        git submodule init
-        git submodule update
     - name: Lint with flake8
       run: |
         # stop the build if there are Python syntax errors or undefined names
@@ -40,11 +38,11 @@ jobs:
         flake8 . --count --max-complexity=10 --max-line-length=255 --statistics --exclude=forza_motorsport/* --ignore=E402,C901,E241
     - name: Test with pytest
       run: |
-        pytest
+        pytest tests/
     - name: Package
       run: |
         .\build.bat
-    - uses: actions/upload-artifact@v3
+    - uses: actions/upload-artifact@v4
       with:
         name: Forza_Auto_Gear_GUI
         path: package/dist/gui

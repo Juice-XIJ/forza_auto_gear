@@ -376,8 +376,19 @@ def rgb(r, g, b):
 
 
 def get_sys_lang():
+    """Return the language index (0=en, 1=zhcn) inferred from system locale.
+
+    Prefers ``locale.getlocale``; falls back to ``locale.getdefaultlocale``
+    on older platforms and finally to ``constants.default_language``.
+    """
     try:
-        lang = locale.getdefaultlocale()[0]
+        try:
+            lang = locale.getlocale()[0] or ''
+        except Exception:
+            # ``getdefaultlocale`` is deprecated in 3.11+, slated for
+            # removal in 3.15 — only used as a fallback when getlocale
+            # returns nothing useful.
+            lang = locale.getdefaultlocale()[0] or ''
         return 1 if 'zh' in lang else 0
     except Exception:
         return constants.default_language
