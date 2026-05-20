@@ -21,12 +21,13 @@ SNAPSHOT_PATH = os.path.join(SNAPSHOT_DIR, "widget_tree.json")
 
 
 # Tk auto-generates internal widget paths like ".!frame.!label2". We strip
-# the trailing digits so two structurally-identical layouts compare equal.
+# all digits so structurally-identical layouts compare equal regardless of
+# the Tk widget counter (which increments when reusing a shared root).
 _PATH_DIGIT_RE = re.compile(r"\d+")
 
 
 def _normalise(path: str) -> str:
-    return _PATH_DIGIT_RE.sub("#", path)
+    return _PATH_DIGIT_RE.sub("", path)
 
 
 def _walk(widget):

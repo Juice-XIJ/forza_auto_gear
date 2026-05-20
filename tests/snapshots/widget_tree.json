@@ -2,234 +2,132 @@
   [
     ".!frame",
     "Frame",
-    1,
-    1
-  ],
-  [
-    ".!frame#",
-    "Frame",
     0,
     0
   ],
   [
-    ".!frame#",
+    ".!frame",
     "Frame",
     0,
     1
   ],
   [
-    ".!frame#",
+    ".!frame",
     "Frame",
     0,
     2
   ],
   [
-    ".!frame#",
+    ".!frame",
     "Frame",
     1,
     0
   ],
   [
-    ".!frame#",
+    ".!frame",
+    "Frame",
+    1,
+    1
+  ],
+  [
+    ".!frame",
     "Frame",
     1,
     2
   ],
   [
-    ".!frame#.!button",
+    ".!frame.!button",
     "Button",
-    null,
-    null
-  ],
-  [
-    ".!frame#.!button#",
-    "Button",
-    null,
-    null
-  ],
-  [
-    ".!frame#.!button#",
-    "Button",
-    null,
-    null
-  ],
-  [
-    ".!frame#.!button#",
-    "Button",
-    null,
-    null
-  ],
-  [
-    ".!frame#.!button#",
-    "Button",
-    null,
-    null
-  ],
-  [
-    ".!frame#.!canvas",
-    "Canvas",
-    null,
-    null
-  ],
-  [
-    ".!frame#.!canvas#",
-    "Canvas",
-    null,
-    null
-  ],
-  [
-    ".!frame#.!canvas#",
-    "Canvas",
-    null,
-    null
-  ],
-  [
-    ".!frame#.!checkbutton-#",
-    "Checkbutton",
-    null,
-    null
-  ],
-  [
-    ".!frame#.!checkbutton-#",
-    "Checkbutton",
-    null,
-    null
-  ],
-  [
-    ".!frame#.!checkbutton-#",
-    "Checkbutton",
-    null,
-    null
-  ],
-  [
-    ".!frame#.!combobox",
-    "TCombobox",
-    null,
-    null
-  ],
-  [
-    ".!frame#.!combobox#",
-    "TCombobox",
-    null,
-    null
-  ],
-  [
-    ".!frame#.!combobox#",
-    "TCombobox",
-    null,
-    null
-  ],
-  [
-    ".!frame#.!combobox#",
-    "TCombobox",
-    null,
-    null
-  ],
-  [
-    ".!frame#.!label",
-    "Label",
-    null,
-    null
-  ],
-  [
-    ".!frame#.!label",
-    "Label",
-    null,
-    null
-  ],
-  [
-    ".!frame#.!label#",
-    "Label",
-    null,
-    null
-  ],
-  [
-    ".!frame#.!label#",
-    "Label",
-    null,
-    null
-  ],
-  [
-    ".!frame#.!label#",
-    "Label",
-    null,
-    null
-  ],
-  [
-    ".!frame#.!label#",
-    "Label",
-    null,
-    null
-  ],
-  [
-    ".!frame#.!label#",
-    "Label",
-    null,
-    null
-  ],
-  [
-    ".!frame#.!label#",
-    "Label",
-    null,
-    null
-  ],
-  [
-    ".!frame#.!label#",
-    "Label",
-    null,
-    null
-  ],
-  [
-    ".!frame#.!label#",
-    "Label",
-    null,
-    null
-  ],
-  [
-    ".!frame#.!label#",
-    "Label",
-    null,
-    null
-  ],
-  [
-    ".!frame#.!label#",
-    "Label",
-    null,
-    null
-  ],
-  [
-    ".!frame#.!label#",
-    "Label",
-    null,
-    null
-  ],
-  [
-    ".!frame#.!text",
-    "Text",
-    null,
-    null
-  ],
-  [
-    ".!frame#.!text",
-    "Text",
-    null,
-    null
-  ],
-  [
-    ".!frame#.!text#",
-    "Text",
-    null,
-    null
-  ],
-  [
-    ".!frame#.!treeview",
-    "Treeview",
     null,
     null
   ],
   [
     ".!frame.!button",
     "Button",
+    null,
+    null
+  ],
+  [
+    ".!frame.!button",
+    "Button",
+    null,
+    null
+  ],
+  [
+    ".!frame.!button",
+    "Button",
+    null,
+    null
+  ],
+  [
+    ".!frame.!button",
+    "Button",
+    null,
+    null
+  ],
+  [
+    ".!frame.!button",
+    "Button",
+    null,
+    null
+  ],
+  [
+    ".!frame.!canvas",
+    "Canvas",
+    null,
+    null
+  ],
+  [
+    ".!frame.!canvas",
+    "Canvas",
+    null,
+    null
+  ],
+  [
+    ".!frame.!canvas",
+    "Canvas",
+    null,
+    null
+  ],
+  [
+    ".!frame.!checkbutton-",
+    "Checkbutton",
+    null,
+    null
+  ],
+  [
+    ".!frame.!checkbutton-",
+    "Checkbutton",
+    null,
+    null
+  ],
+  [
+    ".!frame.!checkbutton-",
+    "Checkbutton",
+    null,
+    null
+  ],
+  [
+    ".!frame.!combobox",
+    "TCombobox",
+    null,
+    null
+  ],
+  [
+    ".!frame.!combobox",
+    "TCombobox",
+    null,
+    null
+  ],
+  [
+    ".!frame.!combobox",
+    "TCombobox",
+    null,
+    null
+  ],
+  [
+    ".!frame.!combobox",
+    "TCombobox",
     null,
     null
   ],
@@ -248,6 +146,108 @@
   [
     ".!frame.!frame.!scrollbar",
     "Scrollbar",
+    null,
+    null
+  ],
+  [
+    ".!frame.!label",
+    "Label",
+    null,
+    null
+  ],
+  [
+    ".!frame.!label",
+    "Label",
+    null,
+    null
+  ],
+  [
+    ".!frame.!label",
+    "Label",
+    null,
+    null
+  ],
+  [
+    ".!frame.!label",
+    "Label",
+    null,
+    null
+  ],
+  [
+    ".!frame.!label",
+    "Label",
+    null,
+    null
+  ],
+  [
+    ".!frame.!label",
+    "Label",
+    null,
+    null
+  ],
+  [
+    ".!frame.!label",
+    "Label",
+    null,
+    null
+  ],
+  [
+    ".!frame.!label",
+    "Label",
+    null,
+    null
+  ],
+  [
+    ".!frame.!label",
+    "Label",
+    null,
+    null
+  ],
+  [
+    ".!frame.!label",
+    "Label",
+    null,
+    null
+  ],
+  [
+    ".!frame.!label",
+    "Label",
+    null,
+    null
+  ],
+  [
+    ".!frame.!label",
+    "Label",
+    null,
+    null
+  ],
+  [
+    ".!frame.!label",
+    "Label",
+    null,
+    null
+  ],
+  [
+    ".!frame.!text",
+    "Text",
+    null,
+    null
+  ],
+  [
+    ".!frame.!text",
+    "Text",
+    null,
+    null
+  ],
+  [
+    ".!frame.!text",
+    "Text",
+    null,
+    null
+  ],
+  [
+    ".!frame.!treeview",
+    "Treeview",
     null,
     null
   ]

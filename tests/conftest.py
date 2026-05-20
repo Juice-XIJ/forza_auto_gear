@@ -4,9 +4,9 @@ The GUI tests need to construct ``MainWindow`` without actually running a
 Tk mainloop, binding UDP sockets, or installing global keyboard hooks.
 The fixtures here provide:
 
-* ``tk_root`` — a real ``tkinter.Tk`` root, auto-destroyed after the test.
-  The fixture skips the test when ``Tk()`` cannot initialise (e.g. headless
-  CI without a display server).
+* ``tk_root`` — a **session-scoped** real ``tkinter.Tk`` root, shared across
+  all tests.  Avoids the Windows Python 3.13 Tcl race condition caused by
+  rapidly creating/destroying separate Tk interpreters.
 * ``patched_mainloop`` — monkey-patches ``tkinter.Tk.mainloop`` to a no-op
   so ``MainWindow()`` returns instead of blocking.
 * ``patched_listener`` — replaces ``pynput.keyboard.Listener.start`` with a
@@ -39,22 +39,25 @@ if _FDP_PATH not in sys.path:
     sys.path.insert(0, _FDP_PATH)
 
 
-@pytest.fixture
+@pytest.fixture(scope="session")
 def tk_root():
-    """Yield a real ``tkinter.Tk`` root; skip the test if Tk is unavailable."""
+    """Session-scoped real ``tkinter.Tk`` root shared across all tests.
+
+    Creating a single Tk interpreter for the entire test run eliminates the
+    Windows Python 3.13 race where rapid Tk() create/destroy cycles fail
+    with 'Can't find a usable init.tcl'.
+    """
     tkinter = pytest.importorskip("tkinter")
     try:
         root = tkinter.Tk()
     except tkinter.TclError as exc:  # pragma: no cover - headless environments
         pytest.skip(f"Tk cannot initialise in this environment: {exc}")
+    root.withdraw()
+    yield root
     try:
-        root.withdraw()  # don't actually show a window during tests
-        yield root
-    finally:
-        try:
-            root.destroy()
-        except Exception:
-            pass
+        root.destroy()
+    except Exception:
+        pass
 
 
 @pytest.fixture
@@ -135,22 +138,24 @@ def sync_thread_pool():
 
 
 @pytest.fixture
-def main_window_factory(patched_mainloop, patched_listener, patched_forza, monkeypatch):
-    """Factory that constructs a ``MainWindow`` without side effects.
+def main_window_factory(tk_root, patched_mainloop, patched_listener, patched_forza, monkeypatch):
+    """Factory that constructs a ``MainWindow`` reusing the session Tk root.
 
     Usage::
 
         def test_something(main_window_factory):
             win = main_window_factory()
-            ...  # window is destroyed automatically at teardown
+            ...  # window is cleaned up automatically at teardown
     """
-    import gc
     import gui as gui_module
 
     created: list = []
 
     def _make():
-        win = gui_module.MainWindow()
+        # Clear leftover children from previous tests on the shared root
+        for child in tk_root.winfo_children():
+            child.destroy()
+        win = gui_module.MainWindow(root=tk_root)
         created.append(win)
         return win
 
@@ -162,11 +167,9 @@ def main_window_factory(patched_mainloop, patched_listener, patched_forza, monke
                 win.threadPool.shutdown(wait=False)
         except Exception:
             pass
-        try:
-            win.root.destroy()
-        except Exception:
-            pass
-    # Force GC between tests so Tcl interpreter state is released cleanly
-    # before the next ``Tk()`` is constructed (works around a Python 3.13
-    # Windows tkinter flake when many Tk roots are created sequentially).
-    gc.collect()
+        # Clean up children but don't destroy the shared root
+        for child in tk_root.winfo_children():
+            try:
+                child.destroy()
+            except Exception:
+                pass

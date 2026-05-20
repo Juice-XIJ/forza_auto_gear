@@ -43,10 +43,10 @@ warnings.filterwarnings("ignore", category=UserWarning)
 
 class MainWindow(FrameBuilderMixin):
 
-    def __init__(self):
+    def __init__(self, root=None):
         """init
         """
-        self.root = tkinter.Tk()
+        self.root = root or tkinter.Tk()
 
         # init text
         self.language = helper.get_sys_lang()
